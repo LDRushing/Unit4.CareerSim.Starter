@@ -21,7 +21,7 @@ const app = express()
 //app routes
 app.use(express.json());
 app.use(require('morgan')('dev'));
-app.post('/api/notes', async (req, res, next) => {});
+app.post('/api/notes', async (req, res, next) => {}); //will likely change to '/api/users' soon. 
 app.get('/api/notes', async (req, res, next) => {
     try{
         const SQL = `SELECT * from notes ORDER BY ranking ASC;`
