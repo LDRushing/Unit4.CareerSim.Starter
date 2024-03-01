@@ -13,9 +13,9 @@ function Cart(){
     //getCheckoutBooks(token);
   }, []);
 
-  const handleReturn = async (bookid) => {
-    await returnBook(token, bookid)
-    getCheckoutBooks(token).then(setCheckedOutBooks)
+  const handleRemove = async (product) => {
+    await removeProducts(token, bookid)
+    getCheckoutProducts(token).then(setCheckedOutProducts)
   };
   // Handle error, e.g., show error message to the user
   //'bId' is 'bookId' abbreviated.
