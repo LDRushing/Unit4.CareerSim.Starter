@@ -2,10 +2,10 @@ import { useState } from 'react'
 import bookLogo from './assets/books.png'
 import Account from "./components/Account.jsx"
 import { Routes, Route, Link, BrowserRouter } from "react-router-dom";
-import Books from "./components/Books.jsx"
+import Products from "./components/Products.jsx"
 import Navigations from "./components/Navigations.jsx"
 import Register from "./components/Register.jsx"
-import SingleBook from './components/SingleBook.jsx'
+import AdminProducts from './components/AdminProducts.jsx'
 import Login from "./components/Login.jsx"
 import './index.css'
 import TokenContext from './TokenContext.js'

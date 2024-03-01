@@ -26,7 +26,7 @@ function Login() {
 
   const validateEmail = (email) => {
     // Simple email validation using a regular expression
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; //According to Simplilearn, JavaScript RegEx is a sequence of characters that forms a search pattern.
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; //JavaScript RegEx is a sequence of characters that forms a search pattern.
     return regex.test(email);
   };
 
