@@ -26,7 +26,7 @@ export async function getCheckoutProducts(token) {
 export async function checkoutProduct(productId) {
   console.log(productId);
   try {
-    const response = await fetch(`${API_URL}/books/${bookId}`, {
+    const response = await fetch(`${API_URL}/products/${bookId}`, {
       method: "PATCH", //PATCH modifies a resource, so I'm trying the Patch method for checking out books.
       body: JSON.stringify({ available: false }),
     });
@@ -37,7 +37,7 @@ export async function checkoutProduct(productId) {
 }
 export async function getProduct(productId) {
   try {
-    const response = await fetch(`${API_URL}/books/${bookId}`);
+    const response = await fetch(`${API_URL}/products/${bookId}`);
     const result = await response.json();
     return result.book;
   } catch (error) {
@@ -64,7 +64,21 @@ function handleFilter(query) {
       return product.title.toLowerCase().includes(query.toLowerCase());
     });
   } catch (error) {
-    console.error("Error while filtering books:", error);
+    console.error("Error while filtering products", error);
     // If they get an error, this message will show up
+  }
+}
+function editCart(token, productId) {
+  try {
+    const response = await fetch(`${API_URL}/products/${productId}`, {
+      method: "UPDATE", 
+      headers: {
+        "Content-Type":"application/json", 
+        Authorization: `Bearer ${token}`, 
+      },
+    });
+    await response.json();
+  } catch (error){
+    console.error("Error when editing this product", error); 
   }
 }
