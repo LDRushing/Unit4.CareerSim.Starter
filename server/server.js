@@ -22,7 +22,7 @@ const app = express();
 
 //app routes
 
-app.get('/api/categories', async (req, res, next) => {
+app.get('/api/lucy_stores_db', async (req, res, next) => {
   try {
     const SQL = `
       SELECT * from categories
@@ -34,7 +34,7 @@ app.get('/api/categories', async (req, res, next) => {
   }
 })
 
-app.get('/api/notes', async (req, res, next) => {
+app.get('/api/lucy_stores_db', async (req, res, next) => {
   try {
     const SQL = `
       SELECT * from notes ORDER BY created_at DESC;
@@ -46,7 +46,7 @@ app.get('/api/notes', async (req, res, next) => {
   }
 })
 
-app.post('/api/notes', async (req, res, next) => {
+app.post('/api/lucy_stores_db', async (req, res, next) => {
   try {
     const SQL = `
       INSERT INTO notes(txt, category_id)
@@ -60,7 +60,7 @@ app.post('/api/notes', async (req, res, next) => {
   }
 })
 
-app.put('/api/notes/:id', async (req, res, next) => { 
+app.put('/api/lucy_stores_db/:id', async (req, res, next) => { 
   try { //Put inserts new code/info into the big code itself. 
     const SQL = `
       UPDATE notes
@@ -79,7 +79,7 @@ app.put('/api/notes/:id', async (req, res, next) => {
   }
 })
 
-app.delete('/api/notes/:id', async (req, res, next) => {
+app.delete('/api/lucy_stores_db/:id', async (req, res, next) => {
   try {
     const SQL = `
       DELETE from notes
