@@ -13,6 +13,22 @@
 // SELECT * FROM users WHERE admin = true;
 // SELECT * FROM users WHERE email = 'bob@mail.com';
 //Reference for Block 33 - Foreign Keys
+const { //Lucy, rename these!!! 
+  client,
+  createTables,
+  createUser,
+  createProduct,
+  createFavorite,
+  fetchUsers,
+  fetchProducts,
+  fetchFavorites,
+  destroyFavorite,
+  authenticate,
+  findUserWithToken,
+} = require("./db");
+const express = require("express");
+const app = express();
+app.use(express.json());
 const pg = require("pg"); //Bringing in our different libraries we'll be using like PG and Express, and our database connection
 const express = require("express");
 const client = new pg.Client(
