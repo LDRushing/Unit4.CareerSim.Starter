@@ -46,7 +46,7 @@ const createTables = async () => {
     INSERT INTO products(name, cost, category_id) VALUES('AD Wise Phone 1988', $700.99, (SELECT id FROM categories WHERE name='Phones'));
     INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Blue)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
     INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Blue)', $50.99, (SELECT id FROM categories WHERE name='Accessories'));
-    INSERT INTO products(name, cost, category_id) VALUES('Mab HD Dreammaker 2024 Laptop', $1100.99, (SELECT id FROM categories WHERE name='Computer'));
+    INSERT INTO products(name, cost, category_id) VALUES('Mab HD Dreammaker 2024 Laptop', $1100.99, (SELECT id FROM categories WHERE name='Computers'));
   `;
     await client.query(SQL); //Applying the SQL. The categories in our API are coming from the data that we seeded. Didn't need to put the ID bc the ID is being generated for us, due to inputting 'id SERIAL PRIMARY KEY'. 
     console.log("data seeded");
@@ -97,6 +97,13 @@ const token = await jwt.sign({ id: response.rows[0].id}, JWT);
 return { token };
 };
 
+const createCart = async() => { //Create cart on click. 
+  const SQL = `
+  INSERT INTO cart(id, product_id, cost) VALUES ($1, $2, $3) RETURNING *
+  `;
+  const response = await client.query(SQL);
+  return response.rows[0];
+};
 const viewCart = async() => { //View cart.  
   const SQL = `
   SELECT *
@@ -108,7 +115,7 @@ const viewCart = async() => { //View cart.
 
 const addToCart = async({ user_id, product_id })=> { //Logged-In users only. 
     const SQL = `
-    INSERT INTO cart(id, user_id, product_id) VALUES($1, $2, $3) RETURNING *
+    INSERT INTO cart(id, product_id, cost) VALUES($1, $2, $3) RETURNING *
   `;//Line 52 is selector names for our IDs in our API. UUIDs were being sent in the payload and we want to make sure our place names and usernames are being sent. We're asking 'Give me the foreign key for $1' instead of the uuid and to post that instead. 
   const response = await client.query(SQL, [uuid.v4(), user_id, product_id ]);
   return response.rows[0];
@@ -116,7 +123,7 @@ const addToCart = async({ user_id, product_id })=> { //Logged-In users only.
 
 const deleteFromCart = async({ user_id, product_id })=> { //Logged-In users only. 
   const SQL = `
-    DELETE from cart (user_id, product_id) VALUES($1, $2, $3) RETURNING *
+    DELETE from cart (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0]; 
@@ -135,7 +142,7 @@ const fetchUsers = async()=> { //ADMIN ONLY
 
 const createProduct = async(name)=> { //ADMIN ONLY 
   const SQL = `
-  INSERT INTO products(id, name) VALUES($1, $2) RETURNING *
+  INSERT INTO products(id, cost, name) VALUES($1, $2) RETURNING *
 `;
 const response = await client.query(SQL, [uuid.v4(), name]);
 return response.rows[0];
@@ -182,12 +189,15 @@ module.exports = {
   fetchProduct,
   createUser,
   createProduct,
+  createCart,
   viewCart,
   addToCart,
   deleteFromCart,
   fetchUsers,
   fetchProducts,
-  destroyProduct
+  destroyProduct,
+  createUser,
+  findUserByToken,
 };
 //Promise.all allows me to run multiple promises at once. According to Younghee, they tend to make the app crash. Promise.all runs all asynchronous functions one after the other. Promise.all seeds the data. We're creating Moe, Rome, Paris, Lucy, etc. Placed it into a different function and calling it. 
 //Set up those two foreign keys. 

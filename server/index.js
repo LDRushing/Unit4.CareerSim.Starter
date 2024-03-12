@@ -112,7 +112,7 @@ const {
       res
         .status(201)
         .send(
-          await createUserSkill({
+          await createUser({
             user_id: req.params.id,
             product_id: req.body.skill_id,
           })
@@ -161,7 +161,7 @@ const {
     await createTables();
     console.log("tables created");
   
-    const [ozzie, cera, yasha, stan, tlUphone7826, adWisePhone1988, mabAvHeadphonesBlue, mabHdDreammaker2024Laptop] = await Promise.all(
+    const [ozzie, waul, lucy, stan, tlUphone7826, adWisePhone1988, mabAvHeadphonesBlue, mabHdDreammaker2024Laptop] = await Promise.all(
       [
         createUser({ username: "Ozzie", password: "eggs" }),
         createUser({ username: "Waul", password: "mice" }),
@@ -182,12 +182,12 @@ const {
       password: eggs,
     }), 
       createAccount({
-        username: cera,
-        password: rocks,
+        username: waul,
+        password: mice,
       }),
       createAccount({
-        username: yasha,
-        password: bows,
+        username: lucy,
+        password: dargan,
       }),
       createAccount({
         username: stan,
