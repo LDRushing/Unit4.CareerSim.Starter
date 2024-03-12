@@ -13,14 +13,15 @@ const createTables = async () => {
     const SQL = `
     DROP TABLE IF EXISTS users;
     DROP TABLE IF EXISTS products;
-    DROP TABLE IF EXISTS categories;
+    DROP TABLE IF EXISTS carts;
+    DROP TABLE IF EXISTS cart_products
     CREATE TABLE users(
       id SERIAL PRIMARY KEY,
-      username VARCHAR(255) NOT NULL UNIQUE,
+      email VARCHAR(255) NOT NULL UNIQUE,
       password VARCHAR(255) NOT NULL, 
       is_admin BOOLEAN DEFAULT FALSE
        );
-    CREATE TABLE categories(
+    CREATE TABLE carts(
       id UUID PRIMARY KEY,
       name VARCHAR(100)
       );
@@ -30,8 +31,14 @@ const createTables = async () => {
     updated_at TIMESTAMP DEFAULT now(),
     cost INTEGER DEFAULT 3 NOT NULL,
     name VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
     product_id INTEGER REFERENCE products(id) NOT NULL
-    );`;
+    );
+      CREATE TABLE cart_products(
+        cart_id SERIAL PRIMARY KEY,
+        product_id INTEGER REFERENCE products(id) NOT NULL,
+        qty INTEGER DEFAULT 3 NOT NULL,
+      )`;
     await client.query(SQL); //Including foreign key which is a category ID.
     console.log("tables created"); //Seeding data. I can use Postman to update 'learn express' to 'learn express and routing' for example. Just select PUT & JSON in Postman. 
     SQL = `
@@ -116,7 +123,7 @@ const viewCart = async() => { //View cart.
 const addToCart = async({ user_id, product_id })=> { //Logged-In users only. 
     const SQL = `
     INSERT INTO cart(id, product_id, cost) VALUES($1, $2, $3) RETURNING *
-  `;//Line 52 is selector names for our IDs in our API. UUIDs were being sent in the payload and we want to make sure our place names and usernames are being sent. We're asking 'Give me the foreign key for $1' instead of the uuid and to post that instead. 
+  `;
   const response = await client.query(SQL, [uuid.v4(), user_id, product_id ]);
   return response.rows[0];
 };
