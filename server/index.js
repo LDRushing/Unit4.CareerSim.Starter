@@ -1,6 +1,7 @@
 const {
     client,
     fetchProduct,
+    findUserByToken,
     createUser,
     createProduct,
     viewCart,
@@ -10,6 +11,7 @@ const {
     fetchProducts,
     destroyProduct
     authenticate,
+    createAccount,
     findUserWithToken,
   } = require("./db");
   const express = require("express");
@@ -121,7 +123,7 @@ const {
   });
   
   app.delete( //Remove a product from my cart 
-    "/api/users/:user_id/cart/:id",
+    "/api/users/user/:id/cart/:id",
     isLoggedIn,
     async (req, res, next) => {
       try {
@@ -159,29 +161,41 @@ const {
     await createTables();
     console.log("tables created");
   
-    const [moe, lucy, ethyl, curly, foo, bar, bazz, quq, fip] = await Promise.all(
+    const [ozzie, cera, yasha, stan, tlUphone7826, adWisePhone1988, mabAvHeadphonesBlue, mabHdDreammaker2024Laptop] = await Promise.all(
       [
-        createUser({ username: "moe", password: "m_pw" }),
-        createUser({ username: "lucy", password: "l_pw" }),
-        createUser({ username: "ethyl", password: "e_pw" }),
-        createUser({ username: "curly", password: "c_pw" }),
-        createProduct({ name: "foo" }),
-        createProduct({ name: "bar" }),
-        createProduct({ name: "bazz" }),
-        createProduct({ name: "quq" }),
-        createProduct({ name: "fip" }),
+        createUser({ username: "Ozzie", password: "eggs" }),
+        createUser({ username: "Waul", password: "mice" }),
+        createUser({ username: "Lucy", password: "dargan" }),
+        createUser({ username: "Stan", password: "honey" }),
+        createProduct({ name: "TL uPhone 7826" }),
+        createProduct({ name: "AD Wise Phone 1988" }),
+        createProduct({ name: "Mab AV Headphones (Blue)" }),
+        createProduct({ name: "Mab HD Dreammaker 2024 Laptop" }),
       ]
     );
   
     console.log(await fetchUsers());
     console.log(await fetchProducts());
-  
-    console.log(await fetchFavorites(moe.id));
-    const favorite = await createFavorite({
-      user_id: moe.id,
-      product_id: foo.id,
-    });
-    app.listen(port, () => console.log(`listening on port ${port}`));
+    await Promise.all([
+      createAccount({
+      username: ozzie,
+      password: eggs,
+    }), 
+      createAccount({
+        username: cera,
+        password: rocks,
+      }),
+      createAccount({
+        username: yasha,
+        password: bows,
+      }),
+      createAccount({
+        username: stan,
+        password: honey
+      }),
+    ]);
+    const port = process.env.PORT || 3000;
+    app.listen(port, ()=> console.log(`listening on port ${port}`));
   };
   
   init();
