@@ -54,6 +54,7 @@ const createTables = async () => {
     INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Blue)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
     INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Blue)', $50.99, (SELECT id FROM categories WHERE name='Accessories'));
     INSERT INTO products(name, cost, category_id) VALUES('Mab HD Dreammaker 2024 Laptop', $1100.99, (SELECT id FROM categories WHERE name='Computers'));
+    INSERT INTO cart_products (SELECT id FROM products WHERE name='Products');
   `;
     await client.query(SQL); //Applying the SQL. The categories in our API are coming from the data that we seeded. Didn't need to put the ID bc the ID is being generated for us, due to inputting 'id SERIAL PRIMARY KEY'. 
     console.log("data seeded");
@@ -106,7 +107,7 @@ return { token };
 
 const createCart = async() => { //Create cart on click. 
   const SQL = `
-  INSERT INTO cart(id, product_id, cost) VALUES ($1, $2, $3) RETURNING *
+  INSERT INTO carts(id, product_id, cost) VALUES ($1, $2, $3) RETURNING *
   `;
   const response = await client.query(SQL);
   return response.rows[0];
@@ -114,7 +115,7 @@ const createCart = async() => { //Create cart on click.
 const viewCart = async() => { //View cart.  
   const SQL = `
   SELECT *
-  from cart
+  from carts
   `;
   const response = await client.query(SQL); 
   return response.rows;
@@ -122,7 +123,7 @@ const viewCart = async() => { //View cart.
 
 const addToCart = async({ user_id, product_id })=> { //Logged-In users only. 
     const SQL = `
-    INSERT INTO cart(id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+    INSERT INTO carts(id, product_id, cost) VALUES($1, $2, $3) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), user_id, product_id ]);
   return response.rows[0];
@@ -130,7 +131,7 @@ const addToCart = async({ user_id, product_id })=> { //Logged-In users only.
 
 const deleteFromCart = async({ user_id, product_id })=> { //Logged-In users only. 
   const SQL = `
-    DELETE from cart (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+    DELETE from carts (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0]; 
