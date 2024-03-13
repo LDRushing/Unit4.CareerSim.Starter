@@ -101,6 +101,18 @@ const {
     }
   });
   
+  app.delete("/api/user/products/:id", isLoggedIn, async (req, res, next) => {
+    try { //Checkout function for when I have units in my cart. Deleting from the products api. 
+      if (req.params.id !== req.product.id) {
+       const error = Error("not authorizrd"); 
+       error.status = 401;
+       throw error; 
+      }
+      res.send(await fetchProducts(req.params.id));
+    } catch (ex) {
+      next(ex);
+    }
+      })
 
   app.post("/api/cart/:id/favorites", isLoggedIn, async (req, res, next) => { //Adds products to my cart.
     try {
@@ -154,14 +166,13 @@ const {
   });
   
   const init = async () => {
-    const port = process.env.PORT || 3000;
     await client.connect();
     console.log("connected to database");
   
     await createTables();
     console.log("tables created");
   
-    const [ozzie, waul, lucy, stan, tlUphone7826, adWisePhone1988, mabAvHeadphonesBlue, mabHdDreammaker2024Laptop] = await Promise.all(
+    const [ozzie, waul, lucy, stan, tlUphone7826, adWisePhone1988, mabAvHeadphonesBlue, mabHdDreammaker2024Laptop] = await Promise.all( //
       [
         createUser({ username: "Ozzie", password: "eggs" }),
         createUser({ username: "Waul", password: "mice" }),

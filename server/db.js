@@ -51,11 +51,12 @@ const createTables = async () => {
     INSERT INTO categories(name) VALUES('Computers');
     INSERT INTO products(name, cost, category_id) VALUES('TL uPhone 7826', $1200.99, (SELECT id FROM categories WHERE name='Phones'));
     INSERT INTO products(name, cost, category_id) VALUES('AD Wise Phone 1988', $700.99, (SELECT id FROM categories WHERE name='Phones'));
-    INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Blue)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
-    INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Blue)', $50.99, (SELECT id FROM categories WHERE name='Accessories'));
+    INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Green)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
+    INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Tan)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
     INSERT INTO products(name, cost, category_id) VALUES('Mab HD Dreammaker 2024 Laptop', $1100.99, (SELECT id FROM categories WHERE name='Computers'));
     INSERT INTO cart_products (SELECT id FROM products WHERE name='Products');
   `;
+  //Cart_products is for when you don't lose the units in your cart. When the user checks out, I must be able to delete products from my products table and empty out my carts_products table. 
     await client.query(SQL); //Applying the SQL. The categories in our API are coming from the data that we seeded. Didn't need to put the ID bc the ID is being generated for us, due to inputting 'id SERIAL PRIMARY KEY'. 
     console.log("data seeded");
   };
@@ -129,12 +130,20 @@ const addToCart = async({ user_id, product_id })=> { //Logged-In users only.
   return response.rows[0];
 };
 
-const deleteFromCart = async({ user_id, product_id })=> { //Logged-In users only. 
+const deleteFromCart = async({ user_id, product_id })=> { //Logged-In users only. Purchased products leaving the cart post-checkout.
   const SQL = `
     DELETE from carts (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0]; 
+}
+
+const deleteFromProducts = async({ product_id }) => { //Products leaving the products database due to checking out. 
+  const SQL = `
+  DELETE from products (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+  `;
+  const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
+  return response.rows[0];
 }
 
 //ADMIN ONLY Functions
@@ -201,6 +210,7 @@ module.exports = {
   viewCart,
   addToCart,
   deleteFromCart,
+  deleteFromProducts,
   fetchUsers,
   fetchProducts,
   destroyProduct,
