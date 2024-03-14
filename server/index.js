@@ -78,7 +78,7 @@ const {
   //USER FUNCTIONS
   app.post("/api/user/cart/:id", isLoggedIn, async (req, res, next) => {
     try { //Adds an additional qty of one product already in your cart.  
-      if (req.params.id !== req.user.id) {
+      if (req.params.id !== req.product_id) {
         const error = Error("not authorized");
         error.status = 401;
         throw error;
@@ -114,7 +114,7 @@ const {
     }
       })
 
-  app.post("/api/cart/:id/favorites", isLoggedIn, async (req, res, next) => { //Adds products to my cart.
+  app.post("/api/cart/:id/", isLoggedIn, async (req, res, next) => { //Adds products to my cart.
     try {
       if (req.params.id !== req.user.id) {
         const error = Error("not authorized");
@@ -126,7 +126,7 @@ const {
         .send(
           await createUser({
             user_id: req.params.id,
-            product_id: req.body.skill_id,
+            product_id: req.body.product_id,
           })
         );
     } catch (ex) {

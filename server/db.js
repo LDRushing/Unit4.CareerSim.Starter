@@ -138,6 +138,22 @@ const deleteFromCart = async({ user_id, product_id })=> { //Logged-In users only
   return response.rows[0]; 
 }
 
+const addQuantity = async({ user_id, product_id })=> { //Logged in users only. Add quantites of the same unit to the cart BEFORE checkout. 
+  const SQL = `
+  INSERT from products (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+  `;
+  const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
+  return response.rows[0]; 
+}
+
+const minusQuantity = async({ user_id, product_id })=> { //Logged in users only/ Subtract quantities of the same unit to the care BEFORE checkout. 
+  const SQL = `
+  INSERT from products (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+  `;
+  const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
+  return response.rows[0]; 
+}
+
 const deleteFromProducts = async({ product_id }) => { //Products leaving the products database due to checking out. 
   const SQL = `
   DELETE from products (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
@@ -215,7 +231,8 @@ module.exports = {
   fetchProducts,
   destroyProduct,
   createUser,
-  findUserByToken,
+  addQuantity,
+  minusQuantity,
 };
 //Promise.all allows me to run multiple promises at once. According to Younghee, they tend to make the app crash. Promise.all runs all asynchronous functions one after the other. Promise.all seeds the data. We're creating Moe, Rome, Paris, Lucy, etc. Placed it into a different function and calling it. 
 //Set up those two foreign keys. 
