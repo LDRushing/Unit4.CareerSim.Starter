@@ -51,14 +51,14 @@ const createTables = async () => {
     INSERT INTO users(id, email, password, is_admin) VALUES ('3b347f01-9fea-43fe-95af-549c140a836d', 'Stan', 'honey', false);
     
     Start here Lucy, post OSP on Friday 3/15/2024
-    INSERT INTO categories(name) VALUES('Accessories');
-    INSERT INTO categories(name) VALUES('Phones');
-    INSERT INTO categories(name) VALUES('Computers');
-    INSERT INTO products(name, cost, category_id) VALUES('TL uPhone 7826', $1200.99, (SELECT id FROM categories WHERE name='Phones'));
-    INSERT INTO products(name, cost, category_id) VALUES('AD Wise Phone 1988', $700.99, (SELECT id FROM categories WHERE name='Phones'));
-    INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Green)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
-    INSERT INTO products(name, cost, category_id) VALUES('Mab AV Headphones (Tan)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
-    INSERT INTO products(name, cost, category_id) VALUES('Mab HD Dreammaker 2024 Laptop', $1100.99, (SELECT id FROM categories WHERE name='Computers'));
+    INSERT INTO categories(id, name) VALUES('b09c9aa9-27c5-4be6-bea2-13c92f39830b','Accessories');
+    INSERT INTO categories(id, name) VALUES('086107f1-e52e-47c7-8a45-067930f9e59a','Phones');
+    INSERT INTO categories(id, name) VALUES('33586335-ba28-4742-8e92-f4108e9ee9dc', 'Computers');
+    INSERT INTO products(id, name, cost, category_id) VALUES('3c9a035e-e45f-4b09-b72f-5dedccd96478', 'TL uPhone 7826', $1200.99, (SELECT id FROM categories WHERE name='Phones'));
+    INSERT INTO products(id, name, cost, category_id) VALUES('c3aa4e0e-4afd-4c51-8156-d1fc551760a6', 'AD Wise Phone 1988', $700.99, (SELECT id FROM categories WHERE name='Phones'));
+    INSERT INTO products(id, name, cost, category_id) VALUES('c2d6cac2-6736-4086-bcc7-7d7b7e4ca5ff', 'Mab AV Headphones (Green)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
+    INSERT INTO products(id, name, cost, category_id) VALUES('5563e0e6-e0aa-498f-abd7-deab19e3593f', 'Mab AV Headphones (Tan)', $12.99, (SELECT id FROM categories WHERE name='Accessories'));
+    INSERT INTO products(id, name, cost, category_id) VALUES('1ad6b9b1-8149-4e0d-ab5e-504cca69a5ca', 'Mab HD Dreammaker 2024 Laptop', $1100.99, (SELECT id FROM categories WHERE name='Computers'));
     INSERT INTO cart_products (SELECT id FROM products WHERE name='Products');
   `;
   //Cart_products is for when you don't lose the units in your cart. When the user checks out, I must be able to delete products from my products table and empty out my carts_products table. 
@@ -238,6 +238,7 @@ module.exports = {
   createUser,
   addQuantity,
   minusQuantity,
+  secret,
   client,
 };
 //Promise.all allows me to run multiple promises at once. According to Younghee, they tend to make the app crash. Promise.all runs all asynchronous functions one after the other. Promise.all seeds the data. We're creating Moe, Rome, Paris, Lucy, etc. Placed it into a different function and calling it. 
