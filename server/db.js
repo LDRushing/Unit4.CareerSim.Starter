@@ -5,47 +5,52 @@ const client = new pg.Client(process.env.DATABASE_URL || 'postgres://localhost/l
 const uuid = require('uuid');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const JWT = process.env.JWT || 'shhh';
+const secret = process.env.jwt || 'shhh';
+
 
 const createTables = async () => {
      //SQL here to create these two tables. You have to drop the child table FIRST. Hence why the notes table is first. 
     console.log("connected to database");
     const SQL = `
     DROP TABLE IF EXISTS users;
+    DROP TABLE IF EXISTS cart_products;
     DROP TABLE IF EXISTS products;
     DROP TABLE IF EXISTS carts;
-    DROP TABLE IF EXISTS cart_products
     CREATE TABLE users(
-      id SERIAL PRIMARY KEY,
+      id UUID PRIMARY KEY,
       email VARCHAR(255) NOT NULL UNIQUE,
       password VARCHAR(255) NOT NULL, 
       is_admin BOOLEAN DEFAULT FALSE
        );
+    CREATE TABLE products(
+        id UUID PRIMARY KEY,
+        created_at TIMESTAMP DEFAULT now(),
+        updated_at TIMESTAMP DEFAULT now(),
+        cost INTEGER DEFAULT 3 NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        description VARCHAR(255) NOT NULL
+        );
     CREATE TABLE carts(
-      id UUID PRIMARY KEY,
-      name VARCHAR(100)
+          id UUID PRIMARY KEY,
+          name VARCHAR(100)
+          );
+    CREATE TABLE cart_products(
+        cart_id UUID PRIMARY KEY,
+        user_id UUID REFERENCES users(id) NOT NULL,
+        product_id UUID REFERENCES products(id) NOT NULL,
+        CONSTRAINT unique_user_id_product_id UNIQUE (user_id, product_id)
       );
-      CREATE TABLE products(
-    id SERIAL PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP DEFAULT now(),
-    cost INTEGER DEFAULT 3 NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    description VARCHAR(255) NOT NULL,
-    product_id INTEGER REFERENCE products(id) NOT NULL
-    );
-      CREATE TABLE cart_products(
-        cart_id SERIAL PRIMARY KEY,
-        product_id INTEGER REFERENCE products(id) NOT NULL,
-        qty INTEGER DEFAULT 3 NOT NULL,
+    
       )`;
-    await client.query(SQL); //Including foreign key which is a category ID.
+    await client.query(SQL); //Including foreign key which is a category ID. 
     console.log("tables created"); //Seeding data. I can use Postman to update 'learn express' to 'learn express and routing' for example. Just select PUT & JSON in Postman. 
     SQL = `
-    INSERT INTO users(username, password, is_admin) VALUES ('Ozzie', 'eggs', false);
-    INSERT INTO users(username, password, is_admin) VALUES ('Waul', 'mice', false);
-    INSERT INTO users(username, password, is_admin) VALUES ('Lucy', 'dargan', true);
-    INSERT INTO users(username, password, is_admin) VALUES ('Stan', 'honey', false);
+    INSERT INTO users(id, email, password, is_admin) VALUES ('287c4460-18cb-476b-809d-a1da50cc3459', 'Ozzie', 'eggs', false);
+    INSERT INTO users(id, email, password, is_admin) VALUES ('3f7c557a-ca3a-4914-9c84-03e2fbc04fbb', 'Waul', 'mice', false);
+    INSERT INTO users(id, email, password, is_admin) VALUES ('871daffd-77c2-40e7-8ab6-c89db82fe9a3', 'Lucy', 'dargan', true);
+    INSERT INTO users(id, email, password, is_admin) VALUES ('3b347f01-9fea-43fe-95af-549c140a836d', 'Stan', 'honey', false);
+    
+    Start here Lucy, post OSP on Friday 3/15/2024
     INSERT INTO categories(name) VALUES('Accessories');
     INSERT INTO categories(name) VALUES('Phones');
     INSERT INTO categories(name) VALUES('Computers');
@@ -72,12 +77,12 @@ const fetchProducts = async()=> { //View all units. Anyone can view.
     return response.rows;
 };
 
-const fetchProduct = async()=> { //Fetch single product. Anyone can view. 
+const fetchProduct = async(id)=> { //Fetch single product. Anyone can view. 
   const SQL = `
   SELECT *
-  FROM products
+  FROM products WHERE id=$1
     `;
-    const response = await client.query(SQL);
+    const response = await client.query(SQL, [id]);
     return response.rows;
 };
 
@@ -181,7 +186,7 @@ const response = await client.query(SQL, [uuid.v4(), name]);
 return response.rows[0];
 };
 
-const destroyProduct = async({product_id, id})=> { //ADMIN ONLY 
+const destroyProduct = async({name})=> { //ADMIN ONLY 
   const SQL = ` 
 DELETE FROM products
 where id = $1
@@ -233,6 +238,7 @@ module.exports = {
   createUser,
   addQuantity,
   minusQuantity,
+  client,
 };
 //Promise.all allows me to run multiple promises at once. According to Younghee, they tend to make the app crash. Promise.all runs all asynchronous functions one after the other. Promise.all seeds the data. We're creating Moe, Rome, Paris, Lucy, etc. Placed it into a different function and calling it. 
 //Set up those two foreign keys. 

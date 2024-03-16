@@ -1,5 +1,6 @@
 const {
     client,
+    createTables,
     fetchProduct,
     findUserByToken,
     createUser,
@@ -9,7 +10,7 @@ const {
     deleteFromCart,
     fetchUsers,
     fetchProducts,
-    destroyProduct
+    destroyProduct,
     authenticate,
     createAccount,
     findUserWithToken,
@@ -78,11 +79,12 @@ const {
   //USER FUNCTIONS
   app.post("/api/user/cart/:id", isLoggedIn, async (req, res, next) => {
     try { //Adds an additional qty of one product already in your cart.  
-      if (req.params.id !== req.product_id) {
-        const error = Error("not authorized");
-        error.status = 401;
-        throw error;
-      }
+     // if (req.params.id !== req.product_id) {
+
+    //    const error = Error("not authorized");
+    //    error.status = 401;
+    //    throw error;
+    //  }
       res.send(await fetchProducts(req.params.id));
     } catch (ex) {
       next(ex);
@@ -159,7 +161,14 @@ const {
       next(ex);
     }
   });
-  
+  app.get("/api/products/:id", async (req, res, next) => { //Selects one product from the products table. 
+    try {
+      res.send(await fetchProduct(req.params.id));
+    } catch (ex) {
+      next(ex); 
+    }
+  })
+
   app.use((err, req, res, next) => { //error-handling 
     console.log(err);
     res.status(err.status || 500).send({ error: err.message || err });
