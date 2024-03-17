@@ -90,7 +90,7 @@ const fetchProduct = async(id)=> { //Fetch single product. Anyone can view.
 
 const createUser = async({ username, password })=> { //Create account
   const SQL = `
-  INSERT INTO users(id, username, password) VALUES($1, $2, $3) RETURNING *
+  INSERT INTO users(id, email, password) VALUES($1, $2, $3) RETURNING *
 `;
 const response = await client.query(SQL, [uuid.v4(), username, await bcrypt.has(password, 5),]);
 return response.rows[0];
@@ -101,19 +101,19 @@ const SQL = `
   FROM users
   WHERE username = $1
 `;
-const response = await client.query(SQL, [ username ]);
+const response = await client.query(SQL, [ username, password ]);
 if(!response.rows.length || (await bcrypt.compare(password, response.rows[0].password))=== false){
   const error = Error('not authorized');
   error.status = 401;
   throw error;
 }
-const token = await jwt.sign({ id: response.rows[0].id}, JWT);
+const token = await jwt.sign({ id: response.rows[0].id}, jwt);
 return { token };
 };
 
 const createCart = async() => { //Create cart on click. 
   const SQL = `
-  INSERT INTO carts(id, product_id, cost) VALUES ($1, $2, $3) RETURNING *
+  INSERT INTO carts(id, name, cost, category_id) VALUES ($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL);
   return response.rows[0];
@@ -129,7 +129,7 @@ const viewCart = async() => { //View cart.
 
 const addToCart = async({ user_id, product_id })=> { //Logged-In users only. 
     const SQL = `
-    INSERT INTO carts(id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+    INSERT INTO carts(id, name, cost, category_id) VALUES($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), user_id, product_id ]);
   return response.rows[0];
@@ -137,7 +137,7 @@ const addToCart = async({ user_id, product_id })=> { //Logged-In users only.
 
 const deleteFromCart = async({ user_id, product_id })=> { //Logged-In users only. Purchased products leaving the cart post-checkout.
   const SQL = `
-    DELETE from carts (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+    DELETE from carts (id, name, cost, category_id) VALUES($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0]; 
@@ -145,7 +145,7 @@ const deleteFromCart = async({ user_id, product_id })=> { //Logged-In users only
 
 const addQuantity = async({ user_id, product_id })=> { //Logged in users only. Add quantites of the same unit to the cart BEFORE checkout. 
   const SQL = `
-  INSERT from products (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+  INSERT from products (id, name, cost, category_id) VALUES($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0]; 
@@ -153,7 +153,7 @@ const addQuantity = async({ user_id, product_id })=> { //Logged in users only. A
 
 const minusQuantity = async({ user_id, product_id })=> { //Logged in users only/ Subtract quantities of the same unit to the care BEFORE checkout. 
   const SQL = `
-  INSERT from products (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+  INSERT from products (id, name, cost, category_id) VALUES($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0]; 
@@ -161,7 +161,7 @@ const minusQuantity = async({ user_id, product_id })=> { //Logged in users only/
 
 const deleteFromProducts = async({ product_id }) => { //Products leaving the products database due to checking out. 
   const SQL = `
-  DELETE from products (id, product_id, cost) VALUES($1, $2, $3) RETURNING *
+  DELETE from products (id, name, cost, category_id) VALUES($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0];
@@ -169,7 +169,7 @@ const deleteFromProducts = async({ product_id }) => { //Products leaving the pro
 
 //ADMIN ONLY Functions
 
-const fetchUsers = async()=> { //ADMIN ONLY
+const fetchUsers = async(name)=> { //ADMIN ONLY
     const SQL = `
     SELECT *
     FROM users
@@ -180,7 +180,7 @@ const fetchUsers = async()=> { //ADMIN ONLY
 
 const createProduct = async(name)=> { //ADMIN ONLY 
   const SQL = `
-  INSERT INTO products(id, cost, name) VALUES($1, $2) RETURNING *
+  INSERT INTO products(id, name, cost, category_id) VALUES($1, $2, $3, $4) RETURNING *
 `;
 const response = await client.query(SQL, [uuid.v4(), name]);
 return response.rows[0];
