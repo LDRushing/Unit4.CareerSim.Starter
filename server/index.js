@@ -13,6 +13,8 @@ const {
     destroyProduct,
     authenticate,
     createAccount,
+    products,
+    users,
     findUserWithToken,
   } = require("./db");
   const express = require("express");
@@ -177,10 +179,9 @@ const {
   const init = async () => {
     await client.connect();
     console.log("connected to database");
-  
     await createTables();
     console.log("tables created");
-  
+
     const [ozzie, waul, lucy, stan, tlUphone7826, adWisePhone1988, mabAvHeadphonesBlue, mabHdDreammaker2024Laptop] = await Promise.all( //
       [
         createUser({ username: "Ozzie", password: "eggs" }),
@@ -191,12 +192,12 @@ const {
         createProduct({ name: "AD Wise Phone 1988" }),
         createProduct({ name: "Mab AV Headphones (Blue)" }),
         createProduct({ name: "Mab HD Dreammaker 2024 Laptop" }),
-      ]
-    );
-  
+      ]);
+  const users = await fetchUsers();
     console.log(await fetchUsers());
+  const products = await fetchProducts();
     console.log(await fetchProducts());
-    await Promise.all([
+    const accounts = await Promise.all([
       createAccount({
       username: ozzie,
       password: eggs,

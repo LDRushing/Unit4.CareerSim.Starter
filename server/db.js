@@ -95,6 +95,7 @@ const createUser = async({ username, password })=> { //Create account
 const response = await client.query(SQL, [uuid.v4(), username, await bcrypt.has(password, 5),]);
 return response.rows[0];
 };
+
 const authenticate = async({ username, password })=> { //authentication tokens. 
 const SQL = `
   SELECT id, password
@@ -217,7 +218,6 @@ const findUserByToken = async(token) => {
     throw error;
   }
   return response.rows[0];
-
 }
 
 module.exports = {
