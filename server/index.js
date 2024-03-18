@@ -12,6 +12,7 @@ const {
     fetchProducts,
     destroyProduct,
     authenticate,
+    createCategory,
     createAccount,
     products,
     users,
@@ -184,37 +185,20 @@ const {
 
     const [ozzie, waul, lucy, stan, tlUphone7826, adWisePhone1988, mabAvHeadphonesBlue, mabHdDreammaker2024Laptop] = await Promise.all( //
       [
-        createUser({ username: "Ozzie", password: "eggs" }),
-        createUser({ username: "Waul", password: "mice" }),
-        createUser({ username: "Lucy", password: "dargan" }),
-        createUser({ username: "Stan", password: "honey" }),
-        createProduct({ name: "TL uPhone 7826" }),
-        createProduct({ name: "AD Wise Phone 1988" }),
-        createProduct({ name: "Mab AV Headphones (Blue)" }),
-        createProduct({ name: "Mab HD Dreammaker 2024 Laptop" }),
+        createUser({ email: "Ozzie", password: "eggs" }),
+        createUser({ email: "Waul", password: "mice" }),
+        createUser({ email: "Lucy", password: "dargan" }),
+        createUser({ email: "Stan", password: "honey" }),
+        createCategory({ name: "Accessories"}),
+        createProduct({ name: "TL uPhone 7826", cost: 12, description: "a", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b" }),
+        createProduct({ name: "AD Wise Phone 1988", cost: 12, description: "a", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b"  }),
+        createProduct({ name: "Mab AV Headphones (Blue)", cost: 12, description: "a", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b"  }),
+        createProduct({ name: "Mab HD Dreammaker 2024 Laptop", cost: 12, description: "a", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b" }),
       ]);
   const users = await fetchUsers();
-    console.log(await fetchUsers());
+    console.log(users);
   const products = await fetchProducts();
-    console.log(await fetchProducts());
-    const accounts = await Promise.all([
-      createAccount({
-      username: ozzie,
-      password: eggs,
-    }), 
-      createAccount({
-        username: waul,
-        password: mice,
-      }),
-      createAccount({
-        username: lucy,
-        password: dargan,
-      }),
-      createAccount({
-        username: stan,
-        password: honey
-      }),
-    ]);
+    console.log(products);
     const port = process.env.PORT || 3000;
     app.listen(port, ()=> console.log(`listening on port ${port}`));
   };
