@@ -1,9 +1,8 @@
-const {
+const { //up to me to use the function as I see fit. 
     client,
     createTables,
     fetchProduct,
     findUserByToken,
-    createUser,
     createProduct,
     viewCart,
     addToCart,
@@ -13,10 +12,8 @@ const {
     destroyProduct,
     authenticate,
     createCategory,
-    createAccount,
-    products,
-    users,
-    findUserWithToken,
+    token, 
+    createUser,
   } = require("./db");
   const express = require("express");
   const app = express();
@@ -31,23 +28,37 @@ const {
     "/assets",
     express.static(path.join(__dirname, "../client/dist/assets"))
   );
-  const isLoggedIn = async (req, res, next) => {
+  //LoggedIn 
+
+  const isLoggedIn = async(req, res, next) => { //Login!! Token required. 
     try {
       req.user = await findUserByToken(req.headers.authorization);
       next();
-    } catch (ex) {
+    }
+    catch(ex){
       next(ex);
     }
   };
+
   //ADMIN FUNCTIONS
-  app.get("/api/auth/login/products", async (req, res, next) => {
+
+//AFTER ISLOGGEDIN
+  const isAdmin = (req, res, next) => {
+    if (!req.user.isAdmin){
+      res.status(401).send("Error"); 
+    } else {
+      res.send(req.user); 
+    } 
+   }; 
+
+  app.get("/api/auth/login/products", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //View units to the store as an admin. 
       res.send(await authenticate(req.body));
     } catch (ex) {
       next(ex);
     }
   });
-  app.post("/api/auth/products", async (req, res, next) => {
+  app.post("/api/auth/products", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //Edits units to the store as an admin. 
       res.send(await authenticate(req.body));
     } catch (ex) {
@@ -55,23 +66,69 @@ const {
     }
   });
   
-  app.post("/api/auth/product:id", isLoggedIn, async (req, res, next) => {
+  app.post("/api/auth/product:id", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //Add a unit as an admin. 
+
       res.send(req.user);
     } catch (ex) {
       next(ex);
     }
   });
 
-  app.delete("/api/auth/:id", isLoggedIn, async (req, res, next) => {
+  app.delete("/api/auth/:id", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //Deletes selected units as an admin. 
       res.send(req.user);
     } catch (ex) {
       next(ex);
     }
   });
+
+
+//   //fake middleware. 
+//   const users = [
+//     {
+//       id: 1, 
+//       name: "Lucy"
+//     },
+//     {
+//       id: 2, 
+//       name: "Yasin"
+//     }, 
+//     {
+//       id: 3,
+//       name: "Edwin"
+//     }
+//   ]
+
+//   const isLoggedIn = (req, res, next) => {
+//     req.user = users.find((user) => user.id.toString === req.params.user_id); 
+//     next(); 
+//   }; 
+// //AFTER ISLOGGEDIN
+//   const isAdmin = (req, res, next) => {
+//     if (!req.user.isAdmin){
+//       res.status(401).send("Error"); 
+//     } else {
+//       res.send(req.user); 
+//     } 
+//    }; 
+
+//    app.get("/", (req, res) => {
+//     res.send("YOLO"); 
+//    })
+
+//   app.post("/login", (req,res) => {
+//     const user = users.find(user => user.id === req.body.id);
+//     req.user = user;
+//     res.send(user); 
+//   }
+
+//   app.get("/:user_id", isLoggedIn, isAdmin (req, res) => {
+//       res.send(req.user); 
+//     }); 
+//   //
   
-  app.get("/api/auth/users", async (req, res, next) => {
+  app.get("/api/auth/users", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //View all users as an admin. 
       res.send(await fetchUsers());
     } catch (ex) {
@@ -82,12 +139,12 @@ const {
   //USER FUNCTIONS
   app.post("/api/user/cart/:id", isLoggedIn, async (req, res, next) => {
     try { //Adds an additional qty of one product already in your cart.  
-     // if (req.params.id !== req.product_id) {
+     if (req.params.id !== req.product_id) {
 
-    //    const error = Error("not authorized");
-    //    error.status = 401;
-    //    throw error;
-    //  }
+       const error = Error("not authorized");
+       error.status = 401;
+       throw error;
+     }
       res.send(await fetchProducts(req.params.id));
     } catch (ex) {
       next(ex);
@@ -149,7 +206,7 @@ const {
           error.status = 401;
           throw error;
         }
-        await deleteUserSkill({ user_id: req.params.userId, id: req.params.id });
+        await deleteProduct({ user_id: req.params.userId, id: req.params.id });
         res.sendStatus(204);
       } catch (ex) {
         next(ex);
@@ -187,13 +244,13 @@ const {
       [
         createUser({ email: "Ozzie", password: "eggs" }),
         createUser({ email: "Waul", password: "mice" }),
-        createUser({ email: "Lucy", password: "dargan" }),
+        createUser({ email: "Lucy", password: "dargan", is_admin: true }),
         createUser({ email: "Stan", password: "honey" }),
         createCategory({ name: "Accessories"}),
-        createProduct({ name: "TL uPhone 7826", cost: 12, description: "a", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b" }),
-        createProduct({ name: "AD Wise Phone 1988", cost: 12, description: "a", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b"  }),
-        createProduct({ name: "Mab AV Headphones (Blue)", cost: 12, description: "a", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b"  }),
-        createProduct({ name: "Mab HD Dreammaker 2024 Laptop", cost: 12, description: "a", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b" }),
+        createProduct({ name: "TL uPhone 7826", cost: 800, description: "Silver uPhone from Tallis-Liore, released Jan 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b" }),
+        createProduct({ name: "AD Wise Phone 1988", cost: 700, description: "White Wise Phone from AD Industries, released Feb 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b"  }),
+        createProduct({ name: "Mab AV Headphones (Green)", cost: 12, description: "Green cushioned headphones, attached to a male adaptor, released by Mab in March 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b"  }),
+        createProduct({ name: "Mab HD Dreammaker 2024 Laptop", cost: 1200, description: "Black laptop with glowing keypad, released by Mab in December 2023", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b" }),
       ]);
   const users = await fetchUsers();
     console.log(users);
@@ -202,5 +259,8 @@ const {
     const port = process.env.PORT || 3000;
     app.listen(port, ()=> console.log(`listening on port ${port}`));
   };
-  
   init();
+
+  // products,
+    // users,
+    // findUserWithToken,

@@ -5,7 +5,7 @@ const client = new pg.Client(process.env.DATABASE_URL || 'postgres://localhost/l
 const uuid = require('uuid');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const secret = process.env.jwt || 'shhh';
+const JWT = process.env.jwt || 'shhh';
 
 
 const createTables = async () => {
@@ -36,11 +36,12 @@ const createTables = async () => {
         cost INTEGER DEFAULT 3 NOT NULL,
         name VARCHAR(255) NOT NULL,
         description VARCHAR(255) NOT NULL,
-        category_id UUID REFERENCES categories(id) NOT NULL
+        category_id UUID REFERENCES categories(id) NOT NULL,
+        photo_id UUID
         );
     CREATE TABLE carts(
           id UUID PRIMARY KEY,
-          name VARCHAR(100)
+          user_id UUID REFERENCES users(id) NOT NULL
           );
     CREATE TABLE cart_products(
         cart_id UUID PRIMARY KEY,
@@ -48,16 +49,10 @@ const createTables = async () => {
         product_id UUID REFERENCES products(id) NOT NULL,
         CONSTRAINT unique_user_id_product_id UNIQUE (user_id, product_id)
       );`;
-    await client.query(SQL); //Including foreign key which is a category ID. 
+    await client.query(SQL); //Including foreign key which is a category ID. Update the products in my cart somehow. 
     console.log("tables created"); //Seeding data. I can use Postman to update 'learn express' to 'learn express and routing' for example. Just select PUT & JSON in Postman. 
     const INSERT_SQL = `
-    INSERT INTO users(id, email, password, is_admin) VALUES ('287c4460-18cb-476b-809d-a1da50cc3459', 'Ozzie', 'eggs', false);
-    INSERT INTO users(id, email, password, is_admin) VALUES ('3f7c557a-ca3a-4914-9c84-03e2fbc04fbb', 'Waul', 'mice', false);
-    INSERT INTO users(id, email, password, is_admin) VALUES ('871daffd-77c2-40e7-8ab6-c89db82fe9a3', 'Lucy', 'dargan', true);
-    INSERT INTO users(id, email, password, is_admin) VALUES ('3b347f01-9fea-43fe-95af-549c140a836d', 'Stan', 'honey', false);
     INSERT INTO categories(id, name) VALUES('b09c9aa9-27c5-4be6-bea2-13c92f39830b','Accessories');
-    INSERT INTO categories(id, name) VALUES('086107f1-e52e-47c7-8a45-067930f9e59a','Phones');
-    INSERT INTO categories(id, name) VALUES('33586335-ba28-4742-8e92-f4108e9ee9dc', 'Computers');
   `;
   //Cart_products is for when you don't lose the units in your cart. When the user checks out, I must be able to delete products from my products table and empty out my carts_products table. 
     await client.query(INSERT_SQL); //Applying the SQL. The categories in our API are coming from the data that we seeded. Didn't need to put the ID bc the ID is being generated for us, due to inputting 'id SERIAL PRIMARY KEY'. 
@@ -96,9 +91,9 @@ const fetchProduct = async(id)=> { //Fetch single product. Anyone can view.
 
 const createUser = async({ email, password, is_admin })=> { //Create account
   const SQL = `
-  INSERT INTO users(id, email, password, is_admin) VALUES($1, $2, $3) RETURNING *
+  INSERT INTO users(id, email, password, is_admin) VALUES($1, $2, $3, $4) RETURNING *
 `;
-const response = await client.query(SQL, [uuid.v4(), email, is_admin, await bcrypt.hash(password, 5),]);
+const response = await client.query(SQL, [uuid.v4(), email, await bcrypt.hash(password, 5), is_admin]);
 return response.rows[0];
 };
 
@@ -106,7 +101,7 @@ const authenticate = async({ email, password })=> { //authentication tokens.
 const SQL = `
   SELECT id, password
   FROM users
-  WHERE username = $1
+  WHERE email = $1
 `;
 const response = await client.query(SQL, [ email, password ]);
 if(!response.rows.length || (await bcrypt.compare(password, response.rows[0].password))=== false){
@@ -115,17 +110,18 @@ if(!response.rows.length || (await bcrypt.compare(password, response.rows[0].pas
   throw error;
 }
 const token = await jwt.sign({ id: response.rows[0].id}, jwt);
-return { token };
+return { token: token };
 };
+//LOGIN FUNCTION
 
-const createCart = async() => { //Create cart on click. 
+const createCart = async() => { //Create cart on click. Include token/authentication. No one else should see my own cart. 
   const SQL = `
   INSERT INTO carts(id, name, cost, category_id) VALUES ($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL);
   return response.rows[0];
 };
-const viewCart = async() => { //View cart.  
+const viewCart = async() => { //View cart. Fetch the instance of one user's cart. Fetch the cart ID.   
   const SQL = `
   SELECT *
   from carts
@@ -173,7 +169,12 @@ const deleteFromProducts = async({ product_id }) => { //Products leaving the pro
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0];
 }
-
+//Photo ID. When I create an <img><img>. I would store the source of the image url to the image. 
+//Route to Login and Logout; DONE
+//Edit Products << ADMIN only; DONE 
+//I need to verify if they're an admin through either middleware or repeatedly write logic that checks if they're an admin. DONE
+//I have data seeded to work off of. 
+//Within the product table, I have cost, id, etc. Whenever I move a unit into the cart_products, have enough of the units to move. I'm subtracting from the products table. It's like moving shoes from location A to location B. 
 //ADMIN ONLY Functions
 
 const fetchUsers = async(name)=> { //ADMIN ONLY
@@ -193,17 +194,25 @@ const response = await client.query(SQL, [uuid.v4(), name, cost, description, ca
 return response.rows[0];
 };
 
+const editProduct = async({name, cost, description, category_id})=> {
+  const SQL = `
+  POST INTO products(id, name, cost, description, category_id) VALUES($1, $2, $3, $4, $5) RETURNING
+  `;
+  const response = await client.query(SQL, [uuidv4(), name, cost, description, category_id]);
+  return response.rows[0];
+}
+
 const createCategory= async({name})=> {
   const SQL = ``;
   const response = await client.query(SQL, [uuid.v4(), name]); 
   return response.rows[0];
 }
-const destroyProduct = async({name})=> { //ADMIN ONLY 
+const destroyProduct = async({name})=> { //ADMIN ONLY; Delete products from the DB. 
   const SQL = ` 
 DELETE FROM products
 where id = $1
   `;
-  await client.query(SQL, [id]);
+  await client.query(SQL, [id], name);
 };
 
 const findUserByToken = async(token) => { 
@@ -237,6 +246,7 @@ module.exports = {
   authenticate,
   createCategory,
   fetchProduct,
+  editProduct,
   createUser,
   createProduct,
   createCart,
@@ -250,8 +260,7 @@ module.exports = {
   createUser,
   addQuantity,
   minusQuantity,
-  secret,
-  client,
+  client
 };
 //Promise.all allows me to run multiple promises at once. According to Younghee, they tend to make the app crash. Promise.all runs all asynchronous functions one after the other. Promise.all seeds the data. We're creating Moe, Rome, Paris, Lucy, etc. Placed it into a different function and calling it. 
 //Set up those two foreign keys. 
