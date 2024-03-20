@@ -37,7 +37,7 @@ const createTables = async () => {
         name VARCHAR(255) NOT NULL,
         description VARCHAR(255) NOT NULL,
         category_id UUID REFERENCES categories(id) NOT NULL,
-        photo_id UUID
+        photo_id UUID REFERENCES photos(id)
         );
     CREATE TABLE carts(
           id UUID PRIMARY KEY,
