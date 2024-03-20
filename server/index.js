@@ -14,6 +14,7 @@ const { //up to me to use the function as I see fit.
     createCategory,
     token, 
     createUser,
+    logInUser,
   } = require("./db");
   const express = require("express");
   const app = express();
@@ -39,6 +40,15 @@ const { //up to me to use the function as I see fit.
       next(ex);
     }
   };
+//req = request. We're taking input from the user and 
+  const logIn = async (req, res, next) => {
+    try { 
+     req.user = await logInUser ({ email, password }); //passing email and password due to logging in with these keys.  
+      next(); 
+    } catch(ex){
+      next(ex); 
+    }
+  }
 
   //ADMIN FUNCTIONS
 
@@ -51,8 +61,19 @@ const { //up to me to use the function as I see fit.
     } 
    }; 
 
+   app.get("/api/auth/login", async (req, res, next) => {  //To login users. app.get << When I open the parenthesis, I'm calling the function and taking arguments. MAke sure it goes within the parenthesis. 
+    try { 
+      const email = req.body.email 
+      const password = req.body.password
+      console.log(email, password); 
+      res.send(await logInUser({email, password }));
+      // res.send(await authenticate(req.body)); 
+    } catch(ex) {
+      next(ex); 
+    }})
+   
   app.get("/api/auth/login/products", isLoggedIn, isAdmin, async (req, res, next) => {
-    try { //View units to the store as an admin. 
+    try { //View units in the store as an admin. 
       res.send(await authenticate(req.body));
     } catch (ex) {
       next(ex);
@@ -214,7 +235,7 @@ const { //up to me to use the function as I see fit.
     }
   );
   
-  app.get("/api/products", async (req, res, next) => { //Creates a table of products to sell. Un-logged in viewers can see this.  
+  app.get("/api/products", async (req, res, next) => { //Creates a table of products to sell. Un-logged in viewers can see this. THIS IS GOOD!! 
     try {
       res.send(await fetchProducts());
     } catch (ex) {
@@ -247,15 +268,17 @@ const { //up to me to use the function as I see fit.
         createUser({ email: "Lucy", password: "dargan", is_admin: true }),
         createUser({ email: "Stan", password: "honey" }),
         createCategory({ name: "Accessories"}),
-        createProduct({ name: "TL uPhone 7826", cost: 800, description: "Silver uPhone from Tallis-Liore, released Jan 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", photo_id: "https://images.pexels.com/photos/336948/pexels-photo-336948.jpeg?cs=srgb&dl=pexels-terje-sollie-336948.jpg&fm=jpg" }),
-        createProduct({ name: "AD Wise Phone 1988", cost: 700, description: "White Wise Phone from AD Industries, released Feb 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", photo_id: "https://st2.depositphotos.com/4271317/9876/v/950/depositphotos_98769054-stock-illustration-white-smartphone-mock-up-with.jpg" }),
-        createProduct({ name: "Mab AV Headphones (Green)", cost: 12, description: "Green cushioned headphones, attached to a male adaptor, released by Mab in March 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", photo_id: "https://as2.ftcdn.net/v2/jpg/05/13/95/65/1000_F_513956516_jf7rObIWiBRuVShkygn1QulWCgu00vNX.jpg" }),
-        createProduct({ name: "Mab HD Dreammaker 2024 Laptop", cost: 1200, description: "Black laptop with glowing keypad, released by Mab in December 2023", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", photo_id: "https://media.istockphoto.com/id/1349374810/photo/a-laptop-half-closed-bright-and-glowing.jpg?s=612x612&w=0&k=20&c=DHKajFhP8y_G_61HqwTW3dJ-nZnx_dSt_V8-NI-VkLs=" }),
+        createCategory({ name: "Phones" }), 
+        createCategory({ name: "Laptops"}),
+        createProduct({ name: "TL uPhone 7826", cost: 800, description: "Silver uPhone from Tallis-Liore, released Jan 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", image_url: "https://images.pexels.com/photos/336948/pexels-photo-336948.jpeg?cs=srgb&dl=pexels-terje-sollie-336948.jpg&fm=jpg" }),
+        createProduct({ name: "AD Wise Phone 1988", cost: 700, description: "White Wise Phone from AD Industries, released Feb 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", image_url: "https://st2.depositphotos.com/4271317/9876/v/950/depositphotos_98769054-stock-illustration-white-smartphone-mock-up-with.jpg" }),
+        createProduct({ name: "Mab AV Headphones (Green)", cost: 12, description: "Green cushioned headphones, attached to a male adaptor, released by Mab in March 2024", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", image_url: "https://as2.ftcdn.net/v2/jpg/05/13/95/65/1000_F_513956516_jf7rObIWiBRuVShkygn1QulWCgu00vNX.jpg" }),
+        createProduct({ name: "Mab HD Dreammaker 2024 Laptop", cost: 1200, description: "Black laptop with glowing keypad, released by Mab in December 2023", category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", image_url: "https://media.istockphoto.com/id/1349374810/photo/a-laptop-half-closed-bright-and-glowing.jpg?s=612x612&w=0&k=20&c=DHKajFhP8y_G_61HqwTW3dJ-nZnx_dSt_V8-NI-VkLs=" }),
       ]);
   const users = await fetchUsers();
-    console.log(users);
+    // console.log(users);
   const products = await fetchProducts();
-    console.log(products);
+    // console.log(products);
     const port = process.env.PORT || 3000;
     app.listen(port, ()=> console.log(`listening on port ${port}`));
   };

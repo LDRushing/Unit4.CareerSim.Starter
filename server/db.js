@@ -36,8 +36,8 @@ const createTables = async () => {
         cost INTEGER DEFAULT 3 NOT NULL,
         name VARCHAR(255) NOT NULL,
         description VARCHAR(255) NOT NULL,
-        category_id UUID REFERENCES categories(id) NOT NULL,
-        photo_id UUID REFERENCES photos(id)
+        image_url TEXT,
+        category_id UUID REFERENCES categories(id) NOT NULL
         );
     CREATE TABLE carts(
           id UUID PRIMARY KEY,
@@ -53,6 +53,8 @@ const createTables = async () => {
     console.log("tables created"); //Seeding data. I can use Postman to update 'learn express' to 'learn express and routing' for example. Just select PUT & JSON in Postman. 
     const INSERT_SQL = `
     INSERT INTO categories(id, name) VALUES('b09c9aa9-27c5-4be6-bea2-13c92f39830b','Accessories');
+    INSERT INTO categories(id, name) VALUES('b09c9aa9-27c5-4be6-bea2-13c92f39830c', 'Phones');
+    INSERT INTO categories(id, name) VALUES('b09c9aa9-27c5-4be6-bea2-13c92f39830d', 'Laptops'); 
   `;
   //Cart_products is for when you don't lose the units in your cart. When the user checks out, I must be able to delete products from my products table and empty out my carts_products table. 
     await client.query(INSERT_SQL); //Applying the SQL. The categories in our API are coming from the data that we seeded. Didn't need to put the ID bc the ID is being generated for us, due to inputting 'id SERIAL PRIMARY KEY'. 
@@ -96,6 +98,23 @@ const createUser = async({ email, password, is_admin })=> { //Create account
 const response = await client.query(SQL, [uuid.v4(), email, await bcrypt.hash(password, 5), is_admin]);
 return response.rows[0];
 };
+
+const logInUser = async({ email, password })=> { //takes in an email and password
+  const SQL = `
+  SELECT *
+  FROM users WHERE email=$1
+  `;
+  const response = await client.query(SQL, [email]); //queries for a user based on email. Checks for a response. IF we get one back, there's a user. 
+  console.log(response, "within logInUser")
+  if (response.rows.length) {
+    const isSamePassword = await bcrypt.compare(password, response.rows[0].password) //compare their password with our hash password. 
+    if (isSamePassword === false){
+      throw new Error (`Incorrect Password`) //if they don't match. 
+    } 
+    return response.rows[0] //returns the user. 
+  }
+  return response.rows;
+} 
 
 const authenticate = async({ email, password })=> { //authentication tokens. 
 const SQL = `
@@ -170,7 +189,7 @@ const deleteFromProducts = async({ product_id }) => { //Products leaving the pro
   return response.rows[0];
 }
 //Photo ID. When I create an <img><img>. I would store the source of the image url to the image. 
-//Route to Login and Logout; DONE
+//Route to Login and Logout; 
 //Edit Products << ADMIN only; DONE 
 //I need to verify if they're an admin through either middleware or repeatedly write logic that checks if they're an admin. DONE
 //I have data seeded to work off of. 
@@ -186,17 +205,17 @@ const fetchUsers = async(name)=> { //ADMIN ONLY
       return response.rows;
 };
 
-const createProduct = async({name, cost, description, category_id})=> { //ADMIN ONLY 
+const createProduct = async({name, cost, description, category_id, image_url})=> { //ADMIN ONLY 
   const SQL = `
-  INSERT INTO products(id, name, cost, description, category_id) VALUES($1, $2, $3, $4, $5) RETURNING *
+  INSERT INTO products(id, name, cost, description, category_id, image_url) VALUES($1, $2, $3, $4, $5, $6) RETURNING *
 `;
-const response = await client.query(SQL, [uuid.v4(), name, cost, description, category_id]);
+const response = await client.query(SQL, [uuid.v4(), name, cost, description, category_id, image_url]);
 return response.rows[0];
 };
 
-const editProduct = async({name, cost, description, category_id})=> {
+const editProduct = async({name, cost, description, category_id, image_url})=> {
   const SQL = `
-  POST INTO products(id, name, cost, description, category_id) VALUES($1, $2, $3, $4, $5) RETURNING
+  POST INTO products(id, name, cost, description, category_id, image_url) VALUES($1, $2, $3, $4, $5, $6) RETURNING
   `;
   const response = await client.query(SQL, [uuidv4(), name, cost, description, category_id]);
   return response.rows[0];
@@ -246,6 +265,7 @@ module.exports = {
   authenticate,
   createCategory,
   fetchProduct,
+  logInUser,
   editProduct,
   createUser,
   createProduct,
