@@ -16,6 +16,8 @@ const { //up to me to use the function as I see fit.
     token, 
     createUser,
     logInUser,
+    minusQuantity,
+    addQuantity,
   } = require("./db");
   const express = require("express");
   const app = express();
@@ -174,7 +176,7 @@ const products = await createProduct(req.body);
        error.status = 401;
        throw error;
      }
-      res.send(await fetchProducts(req.params.id));
+      res.send(await addQuantity(req.params.id));
       product.quantity +=1; // // Code logic to add additional quantity to the product in the user's cart
     } catch (ex) {
       next(ex);
@@ -189,7 +191,7 @@ const products = await createProduct(req.body);
         throw error;
       }
       cartItem.quantity -= 1;  // Example logic to remove quantity of the cart item
-      res.send(await fetchProducts(req.params.id));
+      res.send(await minusQuantity(req.params.id));
     } catch (ex) {
       next(ex);
     }
@@ -211,7 +213,7 @@ const products = await createProduct(req.body);
     }
       })
 
-  app.post("/api/cart/:id/", isLoggedIn, async (req, res, next) => { //Adds products to my cart.
+  app.post("/api/cart/:id/", isLoggedIn, async (req, res, next) => { //Adds products to my cart. LUCY, START HERE 
     try {
       if (req.params.id !== req.user.id) {
         const error = Error("not authorized");
@@ -219,7 +221,7 @@ const products = await createProduct(req.body);
         throw error;
       }
       res.status(201).send(
-          await createUser({
+          await addToCart({
             user_id: req.params.id,
             product_id: req.body.product_id,
           })
