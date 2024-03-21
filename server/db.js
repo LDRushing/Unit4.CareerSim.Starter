@@ -19,7 +19,7 @@ const createTables = async () => {
     DROP TABLE IF EXISTS users;
     CREATE TABLE users(
       id UUID PRIMARY KEY,
-      email VARCHAR(255) NOT NULL UNIQUE,
+      username VARCHAR(255) NOT NULL UNIQUE,
       password VARCHAR(255) NOT NULL, 
       is_admin BOOLEAN DEFAULT FALSE
        );
@@ -91,20 +91,20 @@ const fetchProduct = async(id)=> { //Fetch single product. Anyone can view.
 
 //LOGGED-IN USERS
 
-const createUser = async({ email, password, is_admin })=> { //Create account
+const createUser = async({ username, password, is_admin })=> { //Create account
   const SQL = `
-  INSERT INTO users(id, email, password, is_admin) VALUES($1, $2, $3, $4) RETURNING *
+  INSERT INTO users(id, username, password, is_admin) VALUES($1, $2, $3, $4) RETURNING *
 `;
-const response = await client.query(SQL, [uuid.v4(), email, await bcrypt.hash(password, 5), is_admin]);
+const response = await client.query(SQL, [uuid.v4(), username, await bcrypt.hash(password, 5), is_admin]);
 return response.rows[0];
 };
 
-const logInUser = async({ email, password })=> { //takes in an email and password
+const logInUser = async({ username, password })=> { //takes in an username and password
   const SQL = `
   SELECT *
-  FROM users WHERE email=$1
+  FROM users WHERE username=$1
   `;
-  const response = await client.query(SQL, [email]); //queries for a user based on email. Checks for a response. IF we get one back, there's a user. 
+  const response = await client.query(SQL, [username]); //queries for a user based on username. Checks for a response. IF we get one back, there's a user. 
   console.log(response, "within logInUser")
   if (response.rows.length) {
     const isSamePassword = await bcrypt.compare(password, response.rows[0].password) //compare their password with our hash password. 
@@ -116,13 +116,13 @@ const logInUser = async({ email, password })=> { //takes in an email and passwor
   return response.rows;
 } 
 
-const authenticate = async({ email, password })=> { //authentication tokens. 
+const authenticate = async({ username, password })=> { //authentication tokens. 
 const SQL = `
   SELECT id, password
   FROM users
-  WHERE email = $1
+  WHERE username = $1
 `;
-const response = await client.query(SQL, [ email, password ]);
+const response = await client.query(SQL, [ username, password ]);
 if(!response.rows.length || (await bcrypt.compare(password, response.rows[0].password))=== false){
   const error = Error('not authorized');
   error.status = 401;
@@ -133,7 +133,7 @@ return { token: token };
 };
 //LOGIN FUNCTION
 
-const createCart = async() => { //Create cart on click. Include token/authentication. No one else should see my own cart. 
+const createCart = async(id) => { //Create cart on click. Include token/authentication. No one else should see my own cart. 
   const SQL = `
   INSERT INTO carts(id, name, cost, category_id) VALUES ($1, $2, $3, $4) RETURNING *
   `;
@@ -231,7 +231,7 @@ const editProduct = async({name, cost, description, category_id, image_url})=> {
 }
 
 const createCategory= async({name})=> {
-  const SQL = ``;
+  const SQL = `INSERT into categories(id, name) VALUES($1, $2) RETURNING *`;
   const response = await client.query(SQL, [uuid.v4(), name]); 
   return response.rows[0];
 }
