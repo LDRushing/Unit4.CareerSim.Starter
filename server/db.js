@@ -194,7 +194,16 @@ const deleteFromProducts = async({ product_id }) => { //Products leaving the pro
 //I need to verify if they're an admin through either middleware or repeatedly write logic that checks if they're an admin. DONE
 //I have data seeded to work off of. 
 //Within the product table, I have cost, id, etc. Whenever I move a unit into the cart_products, have enough of the units to move. I'm subtracting from the products table. It's like moving shoes from location A to location B. 
+
 //ADMIN ONLY Functions
+const fetchProductsAsAdmin = async(id)=> {
+  const SQL = `
+  SELECT *
+  FROM products
+  `;
+  const response = await client.query(SQL);
+  return response.rows;
+};
 
 const fetchUsers = async(name)=> { //ADMIN ONLY
     const SQL = `
@@ -217,7 +226,7 @@ const editProduct = async({name, cost, description, category_id, image_url})=> {
   const SQL = `
   POST INTO products(id, name, cost, description, category_id, image_url) VALUES($1, $2, $3, $4, $5, $6) RETURNING
   `;
-  const response = await client.query(SQL, [uuidv4(), name, cost, description, category_id]);
+  const response = await client.query(SQL, [uuidv4(), name, cost, description, category_id, image_url]);
   return response.rows[0];
 }
 
@@ -280,6 +289,7 @@ module.exports = {
   createUser,
   addQuantity,
   minusQuantity,
+  fetchProductsAsAdmin,
   client
 };
 //Promise.all allows me to run multiple promises at once. According to Younghee, they tend to make the app crash. Promise.all runs all asynchronous functions one after the other. Promise.all seeds the data. We're creating Moe, Rome, Paris, Lucy, etc. Placed it into a different function and calling it. 

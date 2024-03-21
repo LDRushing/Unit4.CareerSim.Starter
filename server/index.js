@@ -9,6 +9,7 @@ const { //up to me to use the function as I see fit.
     deleteFromCart,
     fetchUsers,
     fetchProducts,
+    editProduct,
     destroyProduct,
     authenticate,
     createCategory,
@@ -72,16 +73,18 @@ const { //up to me to use the function as I see fit.
       next(ex); 
     }})
    
-  app.get("/api/auth/login/products", isLoggedIn, isAdmin, async (req, res, next) => {
+  app.get("/api/login/auth/products", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //View units in the store as an admin. 
-      res.send(await authenticate(req.body));
+      const products = await fetchProductsAsAdmin(); 
+      res.send(products);
     } catch (ex) {
       next(ex);
     }
   });
   app.post("/api/auth/products", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //Edits units to the store as an admin. 
-      res.send(await authenticate(req.body));
+      const editedProduct = await editProduct(req.body); 
+      res.send(editedProduct);
     } catch (ex) {
       next(ex);
     }
@@ -89,8 +92,8 @@ const { //up to me to use the function as I see fit.
   
   app.post("/api/auth/product:id", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //Add a unit as an admin. 
-
-      res.send(req.user);
+const products = await createProduct(req.body);
+      res.send(products);
     } catch (ex) {
       next(ex);
     }
@@ -98,7 +101,9 @@ const { //up to me to use the function as I see fit.
 
   app.delete("/api/auth/:id", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //Deletes selected units as an admin. 
-      res.send(req.user);
+      const productId = req.params.id;
+      await destroyProduct(productId); 
+      res.send({message: "Product deleted successfully"});
     } catch (ex) {
       next(ex);
     }
@@ -151,26 +156,31 @@ const { //up to me to use the function as I see fit.
   
   app.get("/api/auth/users", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //View all users as an admin. 
-      res.send(await fetchUsers());
+      const email = req.body.email 
+      const password = req.body.password
+      console.log(email, password); 
+      res.send(await fetchUsers({email, password }));
     } catch (ex) {
       next(ex);
     }
   });
-  
+
   //USER FUNCTIONS
   app.post("/api/user/cart/:id", isLoggedIn, async (req, res, next) => {
     try { //Adds an additional qty of one product already in your cart.  
      if (req.params.id !== req.product_id) {
 
-       const error = Error("not authorized");
+       const error = new Error("not authorized");
        error.status = 401;
        throw error;
      }
       res.send(await fetchProducts(req.params.id));
+      product.quantity +=1; // // Code logic to add additional quantity to the product in the user's cart
     } catch (ex) {
       next(ex);
     }
   });
+
   app.delete("/api/user/cart/:id", isLoggedIn, async (req, res, next) => {
     try { //Edit this to ensure a qty removal from cart. 
       if (req.params.id !== req.user.id) {
@@ -178,6 +188,7 @@ const { //up to me to use the function as I see fit.
         error.status = 401;
         throw error;
       }
+      cartItem.quantity -= 1;  // Example logic to remove quantity of the cart item
       res.send(await fetchProducts(req.params.id));
     } catch (ex) {
       next(ex);
@@ -186,12 +197,15 @@ const { //up to me to use the function as I see fit.
   
   app.delete("/api/user/products/:id", isLoggedIn, async (req, res, next) => {
     try { //Checkout function for when I have units in my cart. Deleting from the products api. 
-      if (req.params.id !== req.product.id) {
-       const error = Error("not authorizrd"); 
+       // Assuming req.user.cartItems contains the list of cart items for the authenticated user
+        // And req.product.id represents the product ID in the URL
+      const cartItem = req.user.cartItems.find(item => item.productId === req.params.id);
+      if (!cartItem) {
+       const error = new Error("Cart item not found"); 
        error.status = 401;
        throw error; 
       }
-      res.send(await fetchProducts(req.params.id));
+      res.send({ message: "Checkout successful"});
     } catch (ex) {
       next(ex);
     }
@@ -204,9 +218,7 @@ const { //up to me to use the function as I see fit.
         error.status = 401;
         throw error;
       }
-      res
-        .status(201)
-        .send(
+      res.status(201).send(
           await createUser({
             user_id: req.params.id,
             product_id: req.body.product_id,
