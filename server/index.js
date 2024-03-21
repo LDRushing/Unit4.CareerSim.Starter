@@ -18,6 +18,7 @@ const { //up to me to use the function as I see fit.
     logInUser,
     minusQuantity,
     addQuantity,
+    deleteFromProducts,
   } = require("./db");
   const express = require("express");
   const app = express();
@@ -198,20 +199,18 @@ const products = await createProduct(req.body);
   });
   
   app.delete("/api/user/products/:id", isLoggedIn, async (req, res, next) => {
-    try { //Checkout function for when I have units in my cart. Deleting from the products api. 
-       // Assuming req.user.cartItems contains the list of cart items for the authenticated user
-        // And req.product.id represents the product ID in the URL
-      const cartItem = req.user.cartItems.find(item => item.productId === req.params.id);
-      if (!cartItem) {
-       const error = new Error("Cart item not found"); 
-       error.status = 401;
-       throw error; 
-      }
-      res.send({ message: "Checkout successful"});
-    } catch (ex) {
-      next(ex);
-    }
-      })
+       //Checkout function for when I have units in my cart. Deleting from the products api.
+          try { //Checkout function for when I have units in my cart. Deleting from the products api. 
+            if (req.params.id !== req.product.id) {
+             const error = Error("not authorizrd"); 
+             error.status = 401;
+             throw error; 
+            }
+            res.send(await deleteFromProducts(req.params.id));
+          } catch (ex) {
+            next(ex);
+          }
+            })
 
   app.post("/api/cart/:id/", isLoggedIn, async (req, res, next) => { //Adds products to my cart. LUCY, START HERE 
     try {
