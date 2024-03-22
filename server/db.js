@@ -170,15 +170,15 @@ const addQuantity = async({ cart_id, product_id })=> { //Logged in users only. A
   const SQL = `
   INSERT INTO carts_products(id, cart_id, product_id, quantity) VALUES($1, $2, $3, $4) RETURNING *
   `;
-  const response = await client.query(SQL, [uuid.v4(), cart_id, product_id]);
+  const response = await client.query(SQL, [uuid.v4(), cart_id, product_id, quantity]);
   return response.rows[0]; 
 }
 
-const minusQuantity = async({ user_id, product_id })=> { //Logged in users only/ Subtract quantities of the same unit to the care BEFORE checkout. 
+const minusQuantity = async({ cart_id, product_id })=> { //Logged in users only/ Subtract quantities of the same unit to the care BEFORE checkout. 
   const SQL = `
   DELETE from carts_products (id, cart_id, product_id, quantity) VALUES($1, $2, $3, $4) RETURNING *
   `;
-  const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
+  const response = await client.query(SQL, [uuid.v4(), cart_id, product_id, quantity]);
   return response.rows[0]; 
 }
 
@@ -215,19 +215,21 @@ const fetchUsers = async(name)=> { //ADMIN ONLY
       return response.rows;
 };
 
-const createProduct = async({name, cost, description, category_id, image_url})=> { //ADMIN ONLY 
+const createProduct = async({id, name, cost, description, category_id, image_url})=> { //ADMIN ONLY 
   const SQL = `
   INSERT INTO products(id, name, cost, description, category_id, image_url) VALUES($1, $2, $3, $4, $5, $6) RETURNING *
 `;
-const response = await client.query(SQL, [uuid.v4(), name, cost, description, category_id, image_url]);
+const response = await client.query(SQL, [id, name, cost, description, category_id, image_url]);
 return response.rows[0];
 };
 
-const editProduct = async({name, cost, description, category_id, image_url})=> {
+const editProduct = async({id, name, cost, description, category_id, image_url})=> {
   const SQL = `
-  POST INTO products(id, name, cost, description, category_id, image_url) VALUES($1, $2, $3, $4, $5, $6) RETURNING
+  UPDATE products
+  SET name = $1, cost = $2, description = $3, category_id = $4, image_url = $5
+  WHERE id=$6;
   `;
-  const response = await client.query(SQL, [uuidv4(), name, cost, description, category_id, image_url]);
+  const response = await client.query(SQL, [id, name, cost, description, category_id, image_url]);
   return response.rows[0];
 }
 
