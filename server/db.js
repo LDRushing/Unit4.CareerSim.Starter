@@ -34,6 +34,7 @@ const createTables = async () => {
         created_at TIMESTAMP DEFAULT now(),
         updated_at TIMESTAMP DEFAULT now(),
         cost INTEGER DEFAULT 3 NOT NULL,
+        quantity INTEGER DEFAULT 0, 
         name VARCHAR(255) NOT NULL,
         description VARCHAR(255) NOT NULL,
         image_url TEXT,
@@ -44,10 +45,10 @@ const createTables = async () => {
           user_id UUID REFERENCES users(id) NOT NULL
           );
     CREATE TABLE cart_products(
-        cart_id UUID PRIMARY KEY,
-        user_id UUID REFERENCES users(id) NOT NULL,
+        cart_id UUID REFERENCES carts(id),
         product_id UUID REFERENCES products(id) NOT NULL,
-        CONSTRAINT unique_user_id_product_id UNIQUE (user_id, product_id)
+        quantity INTEGER DEFAULT 0,
+        PRIMARY KEY (cart_id, product_id)
       );`;
     await client.query(SQL); //Including foreign key which is a category ID. Update the products in my cart somehow. 
     console.log("tables created"); //Seeding data. I can use Postman to update 'learn express' to 'learn express and routing' for example. Just select PUT & JSON in Postman. 
@@ -99,7 +100,7 @@ const response = await client.query(SQL, [uuid.v4(), username, await bcrypt.hash
 return response.rows[0];
 };
 
-const logInUser = async({ username, password })=> { //takes in an username and password
+const logInUser = async({ username, password })=> { //takes in a username and password
   const SQL = `
   SELECT *
   FROM users WHERE username=$1
@@ -133,11 +134,11 @@ return { token: token };
 };
 //LOGIN FUNCTION
 
-const createCart = async(id) => { //Create cart on click. Include token/authentication. No one else should see my own cart. 
+const createCart = async({user_id}) => { //Create cart on click. Include token/authentication. No one else should see my own cart. 
   const SQL = `
-  INSERT INTO carts(id, name, cost, category_id) VALUES ($1, $2, $3, $4) RETURNING *
+  INSERT INTO carts(id, user_id) VALUES ($1, $2) RETURNING *
   `;
-  const response = await client.query(SQL);
+  const response = await client.query(SQL, [uuid.v4(), user_id]);
   return response.rows[0];
 };
 const viewCart = async() => { //View cart. Fetch the instance of one user's cart. Fetch the cart ID.   
@@ -165,17 +166,17 @@ const deleteFromCart = async({ user_id, product_id })=> { //Logged-In users only
   return response.rows[0]; 
 }
 
-const addQuantity = async({ user_id, product_id })=> { //Logged in users only. Add quantites of the same unit to the cart BEFORE checkout. 
+const addQuantity = async({ cart_id, product_id })=> { //Logged in users only. Add quantites of the same unit to the cart BEFORE checkout. 
   const SQL = `
-  POST from products (id, name, cost, category_id) VALUES($1, $2, $3, $4) RETURNING *
+  INSERT INTO carts_products(id, cart_id, product_id, quantity) VALUES($1, $2, $3, $4) RETURNING *
   `;
-  const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
+  const response = await client.query(SQL, [uuid.v4(), cart_id, product_id]);
   return response.rows[0]; 
 }
 
 const minusQuantity = async({ user_id, product_id })=> { //Logged in users only/ Subtract quantities of the same unit to the care BEFORE checkout. 
   const SQL = `
-  DELETE from products (id, name, cost, category_id) VALUES($1, $2, $3, $4) RETURNING *
+  DELETE from carts_products (id, cart_id, product_id, quantity) VALUES($1, $2, $3, $4) RETURNING *
   `;
   const response = await client.query(SQL, [uuid.v4(), product_id, user_id]);
   return response.rows[0]; 

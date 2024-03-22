@@ -66,7 +66,7 @@ const { //up to me to use the function as I see fit.
     } 
    }; 
 
-   app.get("/api/auth/login", async (req, res, next) => {  //To login users. app.get << When I open the parenthesis, I'm calling the function and taking arguments. MAke sure it goes within the parenthesis. 
+   app.get("/api/auth/login", async (req, res, next) => {  //To login users. app.get << When I open the parenthesis, I'm calling the function and taking arguments. Make sure it goes within the parenthesis. 
     try { 
       const username = req.body.username 
       const password = req.body.password
@@ -85,6 +85,15 @@ const { //up to me to use the function as I see fit.
       next(ex);
     }
   });
+
+  app.get("/api/login/auth/categories", isLoggedIn, isAdmin, async (req, res, next) => {
+    try{ //Create categories with her as an admin. 
+      const category = await createCategory();
+      res.send(category);
+    } catch(ex) {
+      next(ex);
+    }});
+
   app.post("/api/auth/products", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //Edits units to the store as an admin. 
       const editedProduct = await editProduct(req.body); 
@@ -263,10 +272,14 @@ async (req, res, next) => {
         createProduct({ name: "Mab AV Headphones (Green)", cost: 12, description: "Green cushioned headphones, attached to a male adaptor, released by Mab in March 2024", product_id: '5563e0e6-e0aa-498f-abd7-deab19e3593f',  category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830b", image_url: "https://as2.ftcdn.net/v2/jpg/05/13/95/65/1000_F_513956516_jf7rObIWiBRuVShkygn1QulWCgu00vNX.jpg" }),
         createProduct({ name: "Mab HD Dreammaker 2024 Laptop", cost: 1200, description: "Black laptop with glowing keypad, released by Mab in December 2023", product_id: '1ad6b9b1-8149-4e0d-ab5e-504cca69a5ca', category_id: "b09c9aa9-27c5-4be6-bea2-13c92f39830d", image_url: "https://media.istockphoto.com/id/1349374810/photo/a-laptop-half-closed-bright-and-glowing.jpg?s=612x612&w=0&k=20&c=DHKajFhP8y_G_61HqwTW3dJ-nZnx_dSt_V8-NI-VkLs=" }),
       ]);
+      const [firstCart] = await Promise.all([
+        createCart({ user_id: ozzie.id }),
+      ])
   const users = await fetchUsers();
-    // console.log(users);
+    console.log(users);
   const products = await fetchProducts();
-    // console.log(products);
+    console.log(products);
+    console.log(firstCart);
     const port = process.env.PORT || 3000;
     app.listen(port, ()=> console.log(`listening on port ${port}`));
   };
