@@ -66,7 +66,7 @@ const { //up to me to use the function as I see fit.
     } 
    }; 
 
-   app.get("/api/auth/login", async (req, res, next) => {  //To login users. app.get << When I open the parenthesis, I'm calling the function and taking arguments. Make sure it goes within the parenthesis. 
+   app.get("/api/auth/login", async (req, res, next) => {  //To login users. app.get << When I open the parenthesis, I'm calling the function and taking arguments. Make sure it goes within the parenthesis. DONE
     try { 
       const username = req.body.username 
       const password = req.body.password
@@ -95,7 +95,7 @@ const { //up to me to use the function as I see fit.
     }});
 
   app.put("/api/products/:id", isLoggedIn, isAdmin, async (req, res, next) => {
-    try { //Edits units to the store as an admin. 
+    try { //Edits units to the store as an admin. DONE
       const editedProduct = await editProduct({ ...req.params, ...req.body}); //destructuring spread operator and combining two different objects. 
       res.send(editedProduct);
     } catch (ex) {
@@ -134,9 +134,9 @@ const products = await createProduct(req.body);
   });
 
   //USER FUNCTIONS
-  app.post("/api/user/cart/:id/nav_cart", isLoggedIn, async (req, res, next) => {
+  app.post("/api/cart/:id", isLoggedIn, async (req, res, next) => {
     try { //Adds an additional qty of one product already in your cart.  
-     if (req.params.id !== req.product_id) {
+     if (req.params.id !== req.id) {
 
        const error = new Error("not authorized");
        error.status = 401;
@@ -149,9 +149,9 @@ const products = await createProduct(req.body);
     }
   });
 
-  app.delete("/api/user/cart/:id/nav_cart", isLoggedIn, async (req, res, next) => {
+  app.delete("/api/cart/:id", isLoggedIn, async (req, res, next) => {
     try { //Edit this to ensure a qty removal from cart. 
-      if (req.params.id !== req.user.id) {
+      if (req.params.id !== req.id) {
         const error = Error("not authorized");
         error.status = 401;
         throw error;
@@ -163,7 +163,7 @@ const products = await createProduct(req.body);
     }
   });
   
-  app.delete("/api/user/products/:id/buy", isLoggedIn, async (req, res, next) => {
+  app.delete("/api/products/:id", isLoggedIn, async (req, res, next) => {
        //Checkout function for when I have units in my cart. Deleting from the products api.
           try { //Checkout function for when I have units in my cart. Deleting from the products api. 
             if (req.params.id !== req.product.id) {
@@ -177,7 +177,7 @@ const products = await createProduct(req.body);
           }
             })
 
-  app.post("/api/user/:id/cart/:id/retail", isLoggedIn, async (req, res, next) => { //Adds products to my cart. LUCY, START HERE 
+  app.post("/api/user/:id/cart/:id/", isLoggedIn, async (req, res, next) => { //Adds products to my cart. LUCY, START HERE 
     try {
       if (req.params.id !== req.user.id) {
         const error = Error("not authorized");
@@ -196,7 +196,7 @@ const products = await createProduct(req.body);
   });
   
   app.delete( //Remove a product from my cart 
-    "/api/users/user/:id/cart/:id/retail",
+    "/api/users/user/:id/cart/:id/",
     isLoggedIn,
     async (req, res, next) => {
       try {
@@ -231,14 +231,14 @@ async (req, res, next) => {
 
   //NON-LOGGED IN USERS
   
-  app.get("/api/products", async (req, res, next) => { //Creates a table of products to sell. Un-logged in viewers can see this. THIS IS GOOD!! START HERE, LUCY 
+  app.get("/api/products", async (req, res, next) => { //Creates a table of products to sell. Un-logged in viewers can see this. DONE 
     try {
       res.send(await fetchProducts());
     } catch (ex) {
       next(ex);
     }
   });
-  app.get("/api/products/:id", async (req, res, next) => { //Selects one product from the products table. 
+  app.get("/api/products/:id", async (req, res, next) => { //Selects one product from the products table. DONE
     try {
       res.send(await fetchProduct(req.params.id));
     } catch (ex) {
