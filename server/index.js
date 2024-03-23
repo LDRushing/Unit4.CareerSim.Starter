@@ -36,7 +36,7 @@ const { //up to me to use the function as I see fit.
   );
   //LoggedIn 
 
-  const isLoggedIn = async(req, res, next) => { //Login!! Token required. 
+  const logIn = async(req, res, next) => { //Login!! Token required. 
     try {
       req.user = await findUserByToken(req.headers.authorization);
       next();
@@ -46,7 +46,7 @@ const { //up to me to use the function as I see fit.
     }
   };
 //req = request. We're taking input from the user and 
-  const logIn = async (req, res, next) => {
+  const isLoggedIn = async (req, res, next) => {
     try { 
      req.user = await logInUser ({ username, password }); //passing username and password due to logging in with these keys.  
       next(); 
@@ -77,22 +77,23 @@ const { //up to me to use the function as I see fit.
       next(ex); 
     }})
    
-  app.get("/api/login/auth/products", isLoggedIn, isAdmin, async (req, res, next) => {
-    try { //View units in the store as an admin. 
-      const products = await fetchProductsAsAdmin(); 
-      res.send(products);
-    } catch (ex) {
-      next(ex);
-    }
-  });
+   
+  // app.get("/api/login/auth/products", isLoggedIn, isAdmin, async (req, res, next) => {
+  //   try { //View units in the store as an admin. DONE. 
+  //     const products = await fetchProductsAsAdmin(); 
+  //     res.send(products);
+  //   } catch (ex) {
+  //     next(ex);
+  //   }
+  // });
 
-  app.get("/api/login/auth/categories", isLoggedIn, isAdmin, async (req, res, next) => {
-    try{ //Create categories with her as an admin. 
-      const category = await createCategory();
-      res.send(category);
-    } catch(ex) {
-      next(ex);
-    }});
+  // app.get("/api/login/auth/categories", isLoggedIn, isAdmin, async (req, res, next) => {
+  //   try{ //Create categories with her as an admin. DON'T WORRY ABOUT THIS ONE
+  //     const category = await createCategory();
+  //     res.send(category);
+  //   } catch(ex) {
+  //     next(ex);
+  //   }});
 
   app.put("/api/products/:id", isLoggedIn, isAdmin, async (req, res, next) => {
     try { //Edits units to the store as an admin. DONE
@@ -103,26 +104,25 @@ const { //up to me to use the function as I see fit.
     }
   });
   
-  app.post("/api/product/", isLoggedIn, isAdmin, async (req, res, next) => {
+  app.post("/api/products/", isLoggedIn, isAdmin, async (req, res, next) => { //JEREMY AND LIZ
     try { //Add a unit as an admin. 
-const products = await createProduct(req.body);
-      res.send(products);
+      res.status(201).send(await createProduct({user_id: req.params.id, product_id: req.body.product_id}));
     } catch (ex) {
       next(ex);
     }
   });
 
-  app.delete("/api/auth/:id", isLoggedIn, isAdmin, async (req, res, next) => {
+  app.delete("/api/auth/:id", isLoggedIn, isAdmin, async (req, res, next) => { //JEREMY AND LIZ
     try { //Deletes selected units as an admin. 
       const productId = req.params.id;
-      await destroyProduct(productId); 
-      res.send({message: "Product deleted successfully"});
+      await destroyProduct({user_id: req.params.user_id, id: req.params.id}); 
+      res.sendStatus (204);
     } catch (ex) {
       next(ex);
     }
   });
   
-  app.get("/api/auth/users", isLoggedIn, isAdmin, async (req, res, next) => {
+  app.get("/api/users", isLoggedIn, isAdmin, async (req, res, next) => { //JEREMY AND LIZ
     try { //View all users as an admin. 
       const username = req.body.username 
       const password = req.body.password
@@ -135,7 +135,7 @@ const products = await createProduct(req.body);
 
   //USER FUNCTIONS
   app.post("/api/cart/:id", isLoggedIn, async (req, res, next) => {
-    try { //Adds an additional qty of one product already in your cart.  
+    try { //Adds an additional qty of one product already in your cart.  JEREMY AND LIZ
      if (req.params.id !== req.id) {
 
        const error = new Error("not authorized");
@@ -143,14 +143,14 @@ const products = await createProduct(req.body);
        throw error;
      }
       res.send(await addQuantity(req.params.id));
-      product.quantity +=1; // // Code logic to add additional quantity to the product in the user's cart
+      product.quantity +=1; //Code logic to add additional quantity to the product in the user's cart
     } catch (ex) {
       next(ex);
     }
   });
 
   app.delete("/api/cart/:id", isLoggedIn, async (req, res, next) => {
-    try { //Edit this to ensure a qty removal from cart. 
+    try { //Edit this to ensure a qty removal from cart. JEREMY AND LIZ
       if (req.params.id !== req.id) {
         const error = Error("not authorized");
         error.status = 401;
@@ -165,9 +165,9 @@ const products = await createProduct(req.body);
   
   app.delete("/api/products/:id", isLoggedIn, async (req, res, next) => {
        //Checkout function for when I have units in my cart. Deleting from the products api.
-          try { //Checkout function for when I have units in my cart. Deleting from the products api. 
+          try { //Checkout function for when I have units in my cart. Deleting from the products api. JEREMY & LIZ
             if (req.params.id !== req.product.id) {
-             const error = Error("not authorizrd"); 
+             const error = Error("not authorized"); 
              error.status = 401;
              throw error; 
             }
@@ -177,7 +177,7 @@ const products = await createProduct(req.body);
           }
             })
 
-  app.post("/api/user/:id/cart/:id/", isLoggedIn, async (req, res, next) => { //Adds products to my cart. LUCY, START HERE 
+  app.post("/api/user/:id/cart/:id/", isLoggedIn, async (req, res, next) => { //Adds products to my cart. LUCY, START HERE. JEREMY & LIZ
     try {
       if (req.params.id !== req.user.id) {
         const error = Error("not authorized");
@@ -195,7 +195,7 @@ const products = await createProduct(req.body);
     }
   });
   
-  app.delete( //Remove a product from my cart 
+  app.delete( //Remove a product from my cart; JEREMY AND LIZ
     "/api/users/user/:id/cart/:id/",
     isLoggedIn,
     async (req, res, next) => {
@@ -213,8 +213,8 @@ const products = await createProduct(req.body);
     }
   );
 
-app.post( //creates carts
-"apiusers/user/:id/cart/:id", isLoggedIn, 
+app.post( //creates carts; JEREMY & LIZ
+"api/user/:id/cart/:id", isLoggedIn, 
 async (req, res, next) => {
   try{
     if (req.params.userId !== req.user.id) {
@@ -231,7 +231,7 @@ async (req, res, next) => {
 
   //NON-LOGGED IN USERS
   
-  app.get("/api/products", async (req, res, next) => { //Creates a table of products to sell. Un-logged in viewers can see this. DONE 
+  app.get("/api/products", async (req, res, next) => { //Creates a table of products to sell. Un-logged in viewers can see this. DONE. 
     try {
       res.send(await fetchProducts());
     } catch (ex) {

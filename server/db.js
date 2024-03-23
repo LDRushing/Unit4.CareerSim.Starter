@@ -129,7 +129,7 @@ if(!response.rows.length || (await bcrypt.compare(password, response.rows[0].pas
   error.status = 401;
   throw error;
 }
-const token = await jwt.sign({ id: response.rows[0].id}, jwt);
+const token = await jwt.sign({ id: response.rows[0].id}, JWT);
 return { token: token };
 };
 //LOGIN FUNCTION
@@ -206,7 +206,7 @@ const fetchProductsAsAdmin = async(id)=> {
   return response.rows;
 };
 
-const fetchUsers = async(name)=> { //ADMIN ONLY
+const fetchUsers = async()=> { //ADMIN ONLY
     const SQL = `
     SELECT *
     FROM users
@@ -215,11 +215,11 @@ const fetchUsers = async(name)=> { //ADMIN ONLY
       return response.rows;
 };
 
-const createProduct = async({id, name, cost, description, category_id, image_url})=> { //ADMIN ONLY 
+const createProduct = async({ name, cost, description, category_id, image_url})=> { //ADMIN ONLY 
   const SQL = `
   INSERT INTO products(id, name, cost, description, category_id, image_url) VALUES($1, $2, $3, $4, $5, $6) RETURNING *
 `;
-const response = await client.query(SQL, [id, name, cost, description, category_id, image_url]);
+const response = await client.query(SQL, [uuid.v4(), name, cost, description, category_id, image_url]);
 return response.rows[0];
 };
 
@@ -277,7 +277,6 @@ module.exports = {
   authenticate,
   createCategory,
   fetchProduct,
-  logInUser,
   editProduct,
   createUser,
   createProduct,
