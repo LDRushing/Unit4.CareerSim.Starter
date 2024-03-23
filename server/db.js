@@ -214,6 +214,11 @@ const fetchUsers = async()=> { //ADMIN ONLY
       const response = await client.query(SQL);
       return response.rows;
 };
+const fetchUsers = async() => {
+  const SQL = `
+  SELECT *
+  FROM users`
+}
 
 const createProduct = async({ name, cost, description, category_id, image_url})=> { //ADMIN ONLY 
   const SQL = `
@@ -276,6 +281,7 @@ module.exports = {
   createTables,
   authenticate,
   createCategory,
+  logInUser,
   fetchProduct,
   editProduct,
   createUser,

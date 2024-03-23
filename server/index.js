@@ -133,6 +133,17 @@ const { //up to me to use the function as I see fit.
     }
   });
 
+  app.get("/api/users/:id", async (req, res, next) => {
+    try {
+    const username = req.body.username
+    const password = req.body.password
+    console.log(username, password); 
+    res.send(await fetchUser({username, password}));
+  } catch (ex) {
+    next(ex); 
+  }
+  }); 
+
   //USER FUNCTIONS
   app.post("/api/cart/:id", isLoggedIn, async (req, res, next) => {
     try { //Adds an additional qty of one product already in your cart.  JEREMY AND LIZ
@@ -238,7 +249,7 @@ async (req, res, next) => {
       next(ex);
     }
   });
-  app.get("/api/products/:id", async (req, res, next) => { //Selects one product from the products table. DONE
+  app.get("/api/products/:id", async (req, res, next) => { //Selects one product from the products table. DONE.
     try {
       res.send(await fetchProduct(req.params.id));
     } catch (ex) {
