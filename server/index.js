@@ -6,8 +6,9 @@ const express = require("express");
 // Create an Express application
 const app = express();
 // Middleware
+app.use(cors()); //Cross Origin Research setting. I can take things from more than one resource. 
 app.use(express.json());
-app.use(express());
+
 // Import path
 const path = require("path");
 

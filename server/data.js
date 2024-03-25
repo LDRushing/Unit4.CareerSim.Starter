@@ -32,7 +32,7 @@ const dummyData = async () => {
       }),
       createProduct({
         name: "MABB Hardcover Spiral Sketchbook (8.5'' X 11'')",
-        description: "Black hardcover sketchbook, 8/5 X 11 inches from MABB.",
+        description: "Black hardcover sketchbook, 8.5 X 11 inches from MABB.",
         price: 12.00,
         imageUrl:
           "https://media.istockphoto.com/id/481582684/photo/black-and-white-spiral-notebook-isolated.jpg?s=612x612&w=0&k=20&c=VUVO9gI-09R_HnpE3zxLnRLdUBkRxcFYA7tLTpYAJ_U=",

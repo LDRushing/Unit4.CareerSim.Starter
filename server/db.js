@@ -46,7 +46,7 @@ const createTables = async () => {
 // Create a User
 const createUser = async ({ first_name, last_name, email, password }) => {
   // Create hashed password to be stored in the database to be used for Authentication
-  const hashedPassword = await bcrypt.hash(password, 10); // without this line can't login after creating an account
+  const hashedPassword = await bcrypt.hash(password, 10); // Without this line I can't login after creating an account
   const SQL = `
     INSERT INTO users (id, first_name, last_name, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *
     `;
@@ -105,7 +105,7 @@ const authenticate = async ({ email, password }) => {
   const response = await client.query(SQL, [email]);
   if (
     !response.rows.length ||
-    (await bcrypt.compare(password, response.rows[0].password)) === false
+    (await bcrypt.compare(password, response.rows[0].password)) === false 
   ) {
     const error = Error("Not Authorized");
     error.status = 401;
