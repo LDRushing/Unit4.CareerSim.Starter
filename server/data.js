@@ -12,6 +12,7 @@ const dummyData = async () => {
         last_name: "Valley",
         email: "ozzynotreal@gmail.com",
         password: "eggs",
+        is_admin: true
       }),
     ]);
 

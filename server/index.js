@@ -6,7 +6,7 @@ const express = require("express");
 // Create an Express application
 const app = express();
 // Middleware
-app.use(cors()); //Cross Origin Research setting. I can take things from more than one resource. 
+app.use(express()); //Cross Origin Research setting. I can take things from more than one resource. 
 app.use(express.json());
 
 // Import path
@@ -25,6 +25,8 @@ const {
   deleteCart, // Function to delete the shopping cart
   authenticate, // Function to authenticate a user
   findUserByToken, // Function to find a user by their authentication token
+  deleteProduct,
+  createProduct
 } = require("./db");
 // Import dummyData object from the "./data" module
 const { dummyData } = require("./data");
@@ -37,17 +39,41 @@ app.get("/", (req, res) =>
   res.sendFile(path.join(__dirname, "../client/dist/index.html"))
 );
 
-// Middleware function to check if a user is logged in
+// Middleware function to check if a user is logged in. Finding user info for the token that exists. 
 const isLoggedIn = async (req, res, next) => {
   try {
-    const { user, cart } = await findUserByToken(req.headers.authorization);
+    const user = await findUserByToken(req.headers.authorization);
     req.user = user;
-    req.cart = cart;
     next();
   } catch (err) {
     next(err);
   }
 };
+
+const isAdmin = async (req, res, next) => {
+  try {
+    if(!req.user){
+      const user = await findUserByToken(req.headers.authorization); 
+      req.user = user; //checking for is_admin.
+    }
+    console.log(req.user); 
+    if(req.user.is_admin){
+      next(); 
+    }else{
+      const error = Error("not authorized");
+      error.status = 401;
+      throw error;
+      next(error) //Calling the next function. 
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+app.use((err, req, res, next) => { //error handling
+  console.log(err);
+  res.status(err.status || 500).send({ error: err.message || err });
+});
 
 // POST Register a new user
 app.post("/api/auth/register", async (req, res, next) => {
@@ -88,7 +114,7 @@ app.get("/api/users", async (req, res, next) => {
 });
 
 // GET Products
-app.get("/api/products", async (req, res, next) => {
+app.get("/api/products", isLoggedIn, isAdmin, async (req, res, next) => {
   try {
     res.send(await fetchProducts());
   } catch (err) {
@@ -163,6 +189,40 @@ app.delete(
     }
   }
 );
+//Add units as an ADMIN 
+app.post("/api/products/:id", isLoggedIn, isAdmin, async (req, res, next) => {
+try {
+  // if (req.body.user_id !== req.user.id) {
+  //   const error = Error("not authorized");
+  //   error.status = 401;
+  //   throw error;
+  // }
+  res.status(201).send(
+    await createProduct({
+      name: req.body.name,
+      description: req.body.description,
+      price: req.body.price,
+      imageUrl: req.body.imageUrl
+    })
+  );
+} catch (err) {
+  next(err);
+}});
+
+// DELETE products as an Admin
+app.delete(
+  "/api/products/:id",
+  isLoggedIn, isAdmin,
+  async (req, res, next) => {
+    try {
+      await deleteProduct({ user_id: req.params.user_id, id: req.params.id });
+      res.sendStatus(204);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 
 // Create init function
 const init = async () => {
@@ -174,7 +234,7 @@ const init = async () => {
   console.log("tables created");
 
   // Initialize dummy data
-  const { user, products } = await dummyData();
+  const userProducts = await dummyData();
   // Express server to listen
   app.listen(PORT, () => console.log(`listening on port ${PORT}`));
 };

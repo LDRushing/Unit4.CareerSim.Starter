@@ -23,7 +23,8 @@ const createTables = async () => {
         first_name VARCHAR(30) NOT NULL,
         last_name VARCHAR(30) NOT NULL,
         email VARCHAR(25) UNIQUE NOT NULL,
-        password VARCHAR(100) NOT NULL
+        password VARCHAR(100) NOT NULL, 
+        is_admin BOOLEAN DEFAULT false
     );
     CREATE TABLE products (
         id UUID PRIMARY KEY,
@@ -44,11 +45,11 @@ const createTables = async () => {
 };
 
 // Create a User
-const createUser = async ({ first_name, last_name, email, password }) => {
+const createUser = async ({ first_name, last_name, email, password, is_admin }) => {
   // Create hashed password to be stored in the database to be used for Authentication
   const hashedPassword = await bcrypt.hash(password, 10); // Without this line I can't login after creating an account
   const SQL = `
-    INSERT INTO users (id, first_name, last_name, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *
+    INSERT INTO users (id, first_name, last_name, email, password, is_admin) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
     `;
   const response = await client.query(SQL, [
     uuid.v4(),
@@ -56,6 +57,7 @@ const createUser = async ({ first_name, last_name, email, password }) => {
     last_name,
     email,
     hashedPassword,
+    is_admin
   ]);
   return response.rows[0];
 };
@@ -63,7 +65,7 @@ const createUser = async ({ first_name, last_name, email, password }) => {
 // Create a Product
 const createProduct = async ({ name, description, price, imageUrl }) => {
   const SQL = `
-    INSERT INTO products (id, name, description, price, imageUrl) VALUES ($1, $2, $3, $4, $5) RETURNING *
+    INSERT INTO products (id, name, description, price, imageURL) VALUES ($1, $2, $3, $4, $5) RETURNING *;
     `;
   const response = await client.query(SQL, [
     uuid.v4(),
@@ -97,6 +99,14 @@ const deleteCart = async ({ user_id, id }) => {
   await client.query(SQL, [user_id, id]);
 };
 
+// Delete products as an admin
+const deleteProduct = async ({ id }) => {
+  const SQL = `
+  DELETE FROM products WHERE id = $1
+  `;
+  await client.query(SQL, [id]);
+};
+
 // Authenticate a user based on email and password
 const authenticate = async ({ email, password }) => {
   const SQL = `
@@ -128,25 +138,18 @@ const findUserByToken = async (token) => {
     throw error;
   }
   const SQL = `
-  SELECT id, first_name, last_name, email FROM users WHERE id = $1
+  SELECT id, first_name, last_name, email, is_admin FROM users WHERE id = $1
   `;
   const response = await client.query(SQL, [id]);
+  console.log(response.rows);
   if (!response.rows.length) {
     const error = Error("not authorized");
     error.status = 401;
     throw error;
   }
   const user = response.rows[0];
-  // Fetch cart products for user
-  const cartSQL = `
-  SELECT products.name AS product, cart.quantity AS quantity, products.price, (cart.quantity * products.price) AS total_price FROM cart
-  JOIN products ON cart.product_id = products.id
-  WHERE cart.user_id = $1
-  `;
-  const cartResponse = await client.query(cartSQL, [id]);
-  const cartProducts = cartResponse.rows;
-  return { user: user, cart: cartProducts };
-};
+  return user //response.rows[0]; Returning just the user info. 
+}
 
 // Fetch Users
 const fetchUsers = async () => {
@@ -206,4 +209,5 @@ module.exports = {
   createCart,
   deleteCart,
   fetchCart,
+  deleteProduct
 };
