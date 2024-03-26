@@ -26,7 +26,8 @@ const {
   authenticate, // Function to authenticate a user
   findUserByToken, // Function to find a user by their authentication token
   deleteProduct,
-  createProduct
+  createProduct,
+  fetchProductsAdmin
 } = require("./db");
 // Import dummyData object from the "./data" module
 const { dummyData } = require("./data");
@@ -113,16 +114,32 @@ app.get("/api/users", async (req, res, next) => {
   }
 });
 
-// GET Products
-app.get("/api/products", isLoggedIn, isAdmin, async (req, res, next) => {
+// GET all Products for Admin
+app.get("/api/products/all", isLoggedIn, isAdmin, async (req, res, next) => {
   try {
-    res.send(await fetchProducts());
+    const products = await fetchProductsAdmin();
+    res.send(products);
   } catch (err) {
     // error handling
+    console.error("Failed to fetch all products for admin:", err);
     res.status(500).json({ error: "Failed to load products" });
     next(err);
   }
 });
+
+//GET available products
+app.get("/api/products/", async (req, res, next) => {
+  try {
+    const products = await fetchProducts();
+    res.send(products);
+  } catch (err) {
+    // error handling
+    console.error("Failed to fetch available products:", err);
+    res.status(500).json({ error: "Failed to load products" });
+    next(err);
+  }
+});
+
 
 // GET Single Product
 app.get("/api/products/:id", async (req, res, next) => {

@@ -160,7 +160,16 @@ const fetchUsers = async () => {
   return response.rows;
 };
 
-// Fetch Products
+// Fetch all Products for Admin
+const fetchProductsAdmin = async () => {
+  const SQL = `
+    SELECT * FROM products
+    `;
+  const response = await client.query(SQL);
+  return response.rows;
+};
+
+// Fetch available Products for all
 const fetchProducts = async () => {
   const SQL = `
     SELECT * FROM products
@@ -203,6 +212,7 @@ module.exports = {
   createProduct,
   fetchUsers,
   fetchProducts,
+  fetchProductsAdmin,
   fetchProductByID,
   authenticate,
   findUserByToken,
