@@ -26,8 +26,8 @@ const {
   createProduct,
   fetchProductsAdmin
 } = require("./db");
-// Import dummyData object from the "./data" module
-const { dummyData } = require("./data");
+// Import dbData (database data) object from the "./data" module
+const { dbData } = require("./data");
 
 // static routes here (you only need these for deployment)
 app.use(express.static(path.join(__dirname, "../client/dist")));
@@ -245,9 +245,8 @@ const init = async () => {
 
   await createTables();
   console.log("tables created");
-
   // Initialize dummy data
-  const userProducts = await dummyData();
+   await dbData();
   // Express server to listen
   app.listen(PORT, () => console.log(`listening on port ${PORT}`));
 };

@@ -2,16 +2,16 @@
 // Import createUser and createProduct functions
 const { createUser, createProduct } = require("./db");
 
-// Function to initialize dummy data
-const dummyData = async () => {
+// Function to initialize dbData (database data)
+const dbData = async () => {
   try {
     // Lucy's User
     const user = await Promise.all([
       createUser({
-        first_name: "Ozzy",
-        last_name: "Valley",
-        email: "ozzynotreal@gmail.com",
-        password: "eggs",
+        first_name: "Lucy",
+        last_name: "Rushing",
+        email: "lucynotreal@gmail.com",
+        password: "dargan",
         is_admin: true
       }),
     ]);
@@ -103,5 +103,5 @@ const dummyData = async () => {
   }
 };
 
-// Export the dummyData function
-module.exports = { dummyData };
+// Export the dbData (database data) function
+module.exports = { dbData };
