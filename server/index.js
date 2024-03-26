@@ -1,12 +1,9 @@
 // Import Express module
-const e = require("express");
 const express = require("express");
-// // Import cors module
-// const express = require("express");
 // Create an Express application
 const app = express();
 // Middleware
-app.use(express()); //Cross Origin Research setting. I can take things from more than one resource. 
+app.use(express()); 
 app.use(express.json());
 
 // Import path
@@ -15,16 +12,16 @@ const path = require("path");
 // Import functions from "./db" file
 const {
   client,
-  createTables, // Function to create database tables
-  createUser, // Function to create a new user
-  createCart, // Function to create a new shopping cart
-  fetchUsers, // Function to fetch users
-  fetchProducts, // Function to fetch products
-  fetchProductByID, // Function to fetch a product by its ID
-  fetchCart, // Function to fetch the shopping cart
-  deleteCart, // Function to delete the shopping cart
-  authenticate, // Function to authenticate a user
-  findUserByToken, // Function to find a user by their authentication token
+  createTables, 
+  createUser,
+  createCart, 
+  fetchUsers, 
+  fetchProducts, 
+  fetchProductByID, 
+  fetchCart, 
+  deleteCart, 
+  authenticate, 
+  findUserByToken, 
   deleteProduct,
   createProduct,
   fetchProductsAdmin
@@ -63,8 +60,7 @@ const isAdmin = async (req, res, next) => {
     }else{
       const error = Error("not authorized");
       error.status = 401;
-      throw error;
-      next(error) //Calling the next function. 
+      throw error; //Calling the next function. 
     }
   } catch (err) {
     next(err);
@@ -104,7 +100,7 @@ app.get("/api/auth/me", isLoggedIn, async (req, res, next) => {
 });
 
 // GET Users. If I make changes in VSCode, it'll restart the server. 
-app.get("/api/users", async (req, res, next) => {
+app.get("/api/users", isLoggedIn, isAdmin, async (req, res, next) => {
   try {
     res.send(await fetchUsers());
   } catch (err) {

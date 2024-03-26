@@ -13,7 +13,7 @@ const jwt = require("jsonwebtoken");
 const JWT = process.env.JWT || "shhh";
 
 // Create Tables
-const createTables = async () => {
+const createTables = async () => { // Creates database tables
   const SQL = `
     DROP TABLE IF EXISTS cart;
     DROP TABLE IF EXISTS products CASCADE;
@@ -45,7 +45,7 @@ const createTables = async () => {
 };
 
 // Create a User
-const createUser = async ({ first_name, last_name, email, password, is_admin }) => {
+const createUser = async ({ first_name, last_name, email, password, is_admin }) => {  //Creates a new user
   // Create hashed password to be stored in the database to be used for Authentication
   const hashedPassword = await bcrypt.hash(password, 10); // Without this line I can't login after creating an account
   const SQL = `
@@ -77,7 +77,7 @@ const createProduct = async ({ name, description, price, imageUrl }) => {
   return response.rows[0];
 };
 
-// Create Cart
+//Creates a new shopping cart
 const createCart = async ({ user_id, product_id, quantity }) => {
   const SQL = `
   INSERT INTO cart (id, user_id, product_id, quantity) VALUES ($1, $2, $3, $4) RETURNING *
@@ -107,7 +107,7 @@ const deleteProduct = async ({ id }) => {
   await client.query(SQL, [id]);
 };
 
-// Authenticate a user based on email and password
+// Authenticate a user based on email and password. 
 const authenticate = async ({ email, password }) => {
   const SQL = `
   SELECT id, password, email FROM users WHERE email = $1
@@ -126,7 +126,7 @@ const authenticate = async ({ email, password }) => {
   return { token: token };
 };
 
-// Find user by token
+// Function to find a user by their authentication token
 const findUserByToken = async (token) => {
   let id;
   try {
@@ -151,7 +151,7 @@ const findUserByToken = async (token) => {
   return user //response.rows[0]; Returning just the user info. 
 }
 
-// Fetch Users
+//Fetches users
 const fetchUsers = async () => {
   const SQL = `
     SELECT * FROM users
@@ -178,7 +178,7 @@ const fetchProducts = async () => {
   return response.rows;
 };
 
-// Fetch Single Product by ID
+//Fetches a product by its ID
 const fetchProductByID = async (id) => {
   const SQL = `
     SELECT * FROM products
@@ -188,7 +188,7 @@ const fetchProductByID = async (id) => {
   return response.rows[0];
 };
 
-// Fetch items in cart
+// Fetches items in cart
 const fetchCart = async (user_id) => {
   const SQL = `
     SELECT 
